@@ -44,6 +44,7 @@ model Product {
   imageUrl      String
   affiliateLink String
   category      String?
+  isFeatured    Boolean  @default(false)
   createdAt     DateTime @default(now())
   posts         Post[]
 }

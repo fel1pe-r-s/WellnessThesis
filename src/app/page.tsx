@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { TopAd, InFeedAd, SidebarAd } from '@/components/AdSlots';
 import NewsletterForm from '@/components/NewsletterForm';
 import ProductCarousel from '@/components/ProductCarousel';
+import FeaturedProductSpotlight from '@/components/FeaturedProductSpotlight';
 
 export const dynamic = 'force-dynamic';
 
@@ -95,26 +96,13 @@ export default async function HomePage() {
           <aside className="lg:col-span-4 space-y-8">
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
               <h4 className="font-bold text-slate-900 mb-4 uppercase text-xs tracking-wider">About HealthThesis</h4>
-              <p className="text-slate-600 text-sm leading-relaxed mb-4">
-                We analyze the latest scientific research to bring you actionable advice on wellness, longevity, and beauty.
+              <p className="text-slate-600 text-sm leading-relaxed">
+                Practical tips and insights on wellness, nutrition, beauty, and healthy living to help you feel your best every day.
               </p>
-              <Link href="#" className="text-lime-700 text-sm font-bold hover:underline">Read our Mission &rarr;</Link>
             </div>
 
             <div className="sticky top-24">
-              <div className="bg-gradient-to-br from-lime-700 to-lime-800 rounded-xl p-6 text-center text-white shadow-xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-white opacity-10 rounded-full"></div>
-                <div className="absolute bottom-0 left-0 -ml-8 -mb-8 w-24 h-24 bg-yellow-400 opacity-20 rounded-full"></div>
-
-                <span className="inline-block bg-yellow-400 text-slate-900 text-xs font-extrabold px-2 py-1 rounded uppercase mb-4 shadow-sm">Trending Now</span>
-                <h3 className="text-xl font-bold mb-3 font-serif">Stuck at a Plateau?</h3>
-                <p className="text-sm text-lime-50 mb-6">See the #1 rated natural method to support mitochondrial efficiency after 35.</p>
-                
-                <Link href="#" className="block w-full bg-white text-lime-700 font-bold py-3 rounded-lg shadow-md hover:bg-yellow-400 hover:text-slate-900 transition-all duration-300 transform group-hover:-translate-y-1">
-                  Watch Video Presentation
-                </Link>
-                <p className="text-[10px] text-gray-300 mt-3 opacity-70">Advertisement</p>
-              </div>
+              <FeaturedProductSpotlight />
               
               <div className="mt-8">
                 <SidebarAd />

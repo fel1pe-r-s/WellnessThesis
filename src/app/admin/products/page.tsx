@@ -11,7 +11,8 @@ import {
   ShoppingBag,
   ExternalLink,
   ChevronRight,
-  Filter
+  Filter,
+  Star
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -97,6 +98,15 @@ export default function ProductsPage() {
       } catch (error) {
         console.error('Failed to delete product:', error);
       }
+    }
+  };
+
+  const handleToggleFeatured = async (id: string) => {
+    try {
+      const res = await fetch(`/api/products/${id}/feature`, { method: 'PATCH' });
+      if (res.ok) fetchProducts();
+    } catch (error) {
+      console.error('Failed to toggle featured product:', error);
     }
   };
 
@@ -241,7 +251,12 @@ export default function ProductsPage() {
                     </TableCell>
                     <TableCell className="px-6 py-4">
                       <div className="flex flex-col">
-                        <span className="font-black text-slate-900 text-sm group-hover:text-lime-700 transition-colors">{product.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-slate-900 text-sm group-hover:text-lime-700 transition-colors">{product.name}</span>
+                          {product.isFeatured && (
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          )}
+                        </div>
                         <span className="text-[10px] text-slate-400 font-bold line-clamp-1 opacity-80 mt-0.5">{product.description || 'No description provided'}</span>
                       </div>
                     </TableCell>
