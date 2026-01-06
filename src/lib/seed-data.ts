@@ -1,87 +1,133 @@
-import dbConnect from './mongodb';
-import User from '../models/User';
-import Post from '../models/Post';
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+
+const prisma = new PrismaClient();
 
 async function seed() {
   try {
-    const MONGODB_URI = process.env.MONGODB_URI;
-    if (!MONGODB_URI) throw new Error('MONGODB_URI is required');
+    console.log('Starting seed...');
 
-    await dbConnect();
+    const email = process.env.ADMIN_EMAIL || 'admin@wellnessthesis.com';
+    const password = process.env.ADMIN_PASSWORD || 'adminpassword123';
+    const name = process.env.ADMIN_NAME || 'Admin User';
 
-    // 1. Seed Admin
-    const adminUser = await User.findOne({ username: process.env.ADMIN_USERNAME });
-    if (!adminUser) {
-      await User.create({
-        username: process.env.ADMIN_USERNAME,
-        password: process.env.ADMIN_PASSWORD,
-        role: process.env.ADMIN_ROLE,
+    // 1. Seed Admin User
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await prisma.user.upsert({
+      where: { email },
+      update: {},
+      create: {
+        email,
+        password: hashedPassword,
+        name,
+      },
+    });
+    console.log(`User created/found: ${user.email}`);
+
+    // 2. Seed Categories (Implicitly used in posts/products, but we can ensure consistency)
+    const categories = ['Fitness', 'Beauty', 'Health', 'Well-being'];
+    // In our simple schema, Category is just a string field, so we don't strictly "create" them, 
+    // but specific logical entities like a Category table could be added if needed. 
+    // For now we just use these strings.
+
+    // 3. Seed Products
+    const mitolynProduct = await prisma.product.create({
+      data: {
+        name: 'Mitolyn',
+        description: 'Mitochondrial support supplement for enhanced metabolism.',
+        imageUrl: 'https://images.unsplash.com/photo-1550989460-0adf9ea622e2?q=80&w=600&auto=format&fit=crop', // Generic bottle
+        affiliateLink: 'https://mitolyn.com/affiliate/123',
+        category: 'Health',
+      },
+    });
+
+    const skinCareProduct = await prisma.product.create({
+        data: {
+          name: 'GlowRadio Skin Complex',
+          description: 'Natural ingredients for radiant skin from within.',
+          imageUrl: 'https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?q=80&w=600&auto=format&fit=crop', // Serum bottle
+          affiliateLink: 'https://glowradio.com/affiliate/123',
+          category: 'Beauty',
+        },
       });
-      console.log('Seed: Admin user created');
-    } else {
-      adminUser.password = process.env.ADMIN_PASSWORD;
-      await adminUser.save();
-      console.log('Seed: Admin user password updated');
-    }
 
-    // 2. Seed High-Quality Posts (with Persuasive Copywriting)
-    const existingPosts = await Post.countDocuments();
-    if (existingPosts === 0) {
-      await Post.create([
-        {
-          title: 'The "Metabolic Wall" After 35: Why Your Diet Stopped Working',
-          slug: 'metabolic-wall-after-35',
-          image_url: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=1200&q=80',
+    console.log('Products created');
+
+    // 4. Seed Posts
+    // Post 1: The Metabolic Wall
+    await prisma.post.upsert({
+      where: { slug: 'metabolic-wall-after-35' },
+      update: {},
+      create: {
+        title: 'The "Metabolic Wall" Most People Hit After Age 35',
+        slug: 'metabolic-wall-after-35',
+        imageUrl: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=80',
+        content: `
+          <p class="lead">For years, you've heard the same advice: "Eat less, move more." But if you're over 35, you've likely noticed something frustrating. The rules have changed.</p>
+          
+          <h2>The Science of Mitochondrial Decline</h2>
+          <p>Recent studies in metabolic performance show that calorie counting is only half the battle. The real culprit? <strong>Mitochondrial efficiency.</strong> As we age, our "cellular power plants" lose their ability to convert stored fat into energy efficiently.</p>
+          
+          <blockquote>"It's not about how much you eat, it's about how your cells handle the energy."</blockquote>
+          
+          <h2>The Fat Loss Plateau</h2>
+          <p>When your mitochondria are sluggish, your body enters a conservative state. Instead of burning fat for fuel, it begins to store it more aggressively. This leads to the dreaded "plateau".</p>
+          
+          <h2>How to Re-Engage Your Metabolism</h2>
+          <p>To break through the wall, you need to focus on mitochondrial health. This involves specific nutritional protocols and supporting your body's natural efficiency.</p>
+        `,
+        category: 'Health',
+        authorId: user.id,
+        published: true,
+        ctaLink: mitolynProduct.affiliateLink,
+        adSlots: {
+            sidebar: 'dynamic', // To be replaced by generic ads component logic
+            top: 'generic'
+        }
+      },
+    });
+
+    // Post 2: The Mitochondrial Efficiency
+    await prisma.post.upsert({
+        where: { slug: 'mitochondrial-efficiency-explained' },
+        update: {},
+        create: {
+          title: 'The Mitochondrial Efficiency: Why It Matters More Than Calories',
+          slug: 'mitochondrial-efficiency-explained',
+          imageUrl: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=1200&q=80',
           content: `
-            <p class="lead">For years, you've heard the same advice: "Eat less, move more." But if you're over 35, you've likely noticed something frustrating. The rules have changed.</p>
+            <p>We often talk about metabolism as a fixed number, but it's actually driven by billions of microscopic power plants in your cells: the mitochondria.</p>
             
-            <h2>The Science of Mitochondrial Decline</h2>
-            <p>Recent studies in metabolic performance show that calorie counting is only half the battle. The real culprit? <strong>Mitochondrial efficiency.</strong> As we age, our "cellular power plants" lose their ability to convert stored fat into energy efficiently. This isn't just a physical change; it's a metabolic shift that locks your fat stores behind a wall of biological resistance.</p>
+            <h2>Efficiency vs. Volume</h2>
+            <p>You can eat clean and exercise, but if your mitochondrial efficiency is low, you're driving a car with the parking brake on. Improving this efficiency is the key to vitality and sustained energy levels.</p>
             
-            <blockquote>"It's not about how much you eat, it's about how your cells handle the energy."</blockquote>
+            <h2>Natural Activators</h2>
+            <p>Certain compounds and lifestyle changes can signal your body to create new mitochondria (biogenesis) and repair old ones (mitophagy).</p>
             
-            <h2>The Fat Loss Plateau</h2>
-            <p>When your mitochondria are sluggish, your body enters a conservative state. Instead of burning fat for fuel, it begins to store it more aggressively, even on a caloric deficit. This leads to the dreaded "plateau" where even intense workouts fail to yield results.</p>
+            <h3>1. Cold Exposure</h3>
+            <p>Short bursts of cold can stimulate mitochondrial activity.</p>
             
-            <h2>How to Re-Engage Your Metabolism</h2>
-            <p>To break through the wall, you need to focus on mitochondrial health. This involves specific nutritional protocols, high-intensity interval training (HIIT), and most importantly, supporting your body's natural efficiency from within.</p>
+            <h3>2. Fasted Cardio</h3>
+            <p>Exercising in a fasted state can force adaptation.</p>
           `,
-          cta_link: 'https://abd91l3kwjq7poa7lf2kci6p2v.hop.clickbank.net', // Exemplo de link afiliado
-          ad_slots: {
-            top: '<!-- Google Ads Top placeholder -->',
-            sidebar: '<!-- Google Ads Sidebar placeholder -->',
-            in_feed: '<!-- Google Ads In-feed placeholder -->'
+          category: 'Fitness',
+          authorId: user.id,
+          published: true,
+          ctaLink: mitolynProduct.affiliateLink,
+          adSlots: {
+              sidebar: 'dynamic',
+              top: 'generic'
           }
         },
-        {
-            title: 'Top 5 Anti-Inflammatory Foods for Instant Bloat Relief',
-            slug: 'top-5-anti-inflammatory-foods',
-            image_url: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=500&q=80',
-            content: `
-              <p>Bloating isn't just uncomfortable; it's a sign of systemic inflammation. By incorporating these five science-backed foods, you can soothe your digestive tract and feel lighter in days.</p>
-              <ul>
-                <li><strong>Ginger:</strong> A powerful root that speeds up gastric emptying.</li>
-                <li><strong>Turmeric:</strong> Contains curcumin, which inhibits inflammatory markers.</li>
-                <li><strong>Wild Salmon:</strong> Rich in Omega-3 fatty acids.</li>
-                <li><strong>Blueberries:</strong> Packed with anthocyanins.</li>
-                <li><strong>Leafy Greens:</strong> High in magnesium and fiber.</li>
-              </ul>
-            `,
-            cta_link: 'https://healththesis.com/supplement-guide',
-            ad_slots: {
-              top: '<!-- Google Ads Top placeholder -->',
-              sidebar: '<!-- Google Ads Sidebar placeholder -->',
-              in_feed: '<!-- Google Ads In-feed placeholder -->'
-            }
-          }
-      ]);
-      console.log('Seed: Initial high-quality posts created');
-    }
+      });
 
-  } catch (error) {
-    console.error('Seed error:', error);
+    console.log('Posts created');
+
+  } catch (e) {
+    console.error(e);
+    process.exit(1);
   } finally {
-    process.exit(0);
+    await prisma.$disconnect();
   }
 }
 
