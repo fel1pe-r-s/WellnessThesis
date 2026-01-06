@@ -18,7 +18,7 @@ export async function middleware(request: NextRequest) {
     const decoded = await verifyJwt(token);
     console.log('Middleware: Decoded token?', !!decoded);
     
-    if (!decoded || (decoded as any).role !== 'admin_painel_total') {
+    if (!decoded || (decoded as any).role !== 'admin') {
       console.log('Middleware: Invalid token or role, redirecting to login');
       return NextResponse.redirect(new URL('/admin/login', request.url));
     }

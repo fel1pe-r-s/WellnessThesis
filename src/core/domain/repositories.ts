@@ -8,11 +8,16 @@ export interface IPostRepository {
   create(data: any): Promise<Post>;
   update(id: string, data: any): Promise<Post>;
   delete(id: string): Promise<boolean>;
+  findRelated(category: string, excludeId: string, limit: number): Promise<Post[]>;
 }
 
 export interface IProductRepository {
   findByCategory(category: string): Promise<Product[]>;
   findAll(): Promise<Product[]>;
+  findById(id: string): Promise<Product | null>;
+  create(data: any): Promise<Product>;
+  update(id: string, data: any): Promise<Product>;
+  delete(id: string): Promise<boolean>;
 }
 
 export interface ISubscriberRepository {

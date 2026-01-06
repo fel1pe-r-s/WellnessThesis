@@ -1,47 +1,93 @@
 'use client';
-import React from 'react';
-import Link from 'next/link';
 
-// Mock data - would come from props/DB in real app
-const products = [
-  { id: 1, name: 'Mitolyn', image: 'https://images.unsplash.com/photo-1550989460-0adf9ea622e2?q=80&w=400', link: '#' },
-  { id: 2, name: 'GlowRadio', image: 'https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?q=80&w=400', link: '#' },
-  { id: 3, name: 'GutRestore', image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=400', link: '#' },
-  { id: 4, name: 'KetoMatcha', image: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?q=80&w=400', link: '#' },
-];
+import React, { useEffect, useState } from 'react';
+import { ShoppingBag, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
+import { getAllProductsUseCase } from '@/core/use-cases';
 
 export default function ProductCarousel() {
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        // Since we are in a 'use client' component, we'll use a fetch call to an API route instead of direct use case
+        const res = await fetch('/api/products');
+        const data = await res.json();
+        setProducts(data);
+      } catch (error) {
+        console.error('Failed to fetch products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  if (loading) return (
+    <div className="py-20 bg-[#10221c] flex justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#13eca4]"></div>
+    </div>
+  );
+
+  if (products.length === 0) return null;
+
   return (
-    <div className="py-12 bg-white border-t border-gray-100">
+    <section className="py-24 bg-[#10221c] border-t border-[#233b32]">
       <div className="container mx-auto px-6">
-        <div className="flex justify-between items-end mb-8">
-            <div>
-                 <h2 className="text-2xl font-serif font-bold text-gray-900">Curated Wellness</h2>
-                 <p className="text-gray-500 mt-1">Tools we trust for your journey.</p>
-            </div>
-            <Link href="/shop" className="text-[#4D7C0F] font-bold hover:underline">View All</Link>
+        <div className="flex items-end justify-between mb-12">
+          <div>
+            <span className="text-[#13eca4] text-xs font-black uppercase tracking-[0.2em] mb-3 block">Wellness Toolkit</span>
+            <h2 className="text-3xl md:text-5xl font-black text-[#f6f8f7] uppercase tracking-tighter">Recommended Solutions</h2>
+          </div>
+          <div className="flex gap-4 hidden md:flex">
+             <button className="p-3 rounded-xl border border-[#233b32] text-[#61897c] hover:text-[#13eca4] hover:border-[#13eca4] transition-all">
+                <ChevronLeft size={24} />
+             </button>
+             <button className="p-3 rounded-xl border border-[#233b32] text-[#61897c] hover:text-[#13eca4] hover:border-[#13eca4] transition-all">
+                <ChevronRight size={24} />
+             </button>
+          </div>
         </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {products.map((product) => (
-            <a key={product.id} href={product.link} className="group block">
-              <div className="aspect-[4/5] bg-gray-50 rounded-xl overflow-hidden mb-4 relative">
-                 <img 
-                    src={product.image} 
-                    alt={product.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                 />
-                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <span className="bg-white text-gray-900 px-4 py-2 rounded-full font-bold text-sm transform translate-y-4 group-hover:translate-y-0 transition-transform">
-                        View Product
-                    </span>
+            <div 
+              key={product.id} 
+              className="group bg-[#152822] rounded-3xl p-6 border border-[#233b32] hover:border-[#13eca4]/50 transition-all duration-500 hover:-translate-y-2 relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                 <div className="bg-[#13eca4] p-2 rounded-xl text-[#111816]">
+                    <ExternalLink size={16} />
                  </div>
               </div>
-              <h3 className="font-bold text-gray-900 group-hover:text-[#4D7C0F] transition-colors">{product.name}</h3>
-            </a>
+              
+              <div className="aspect-square rounded-2xl overflow-hidden mb-6 bg-[#10221c] border border-[#233b32]">
+                <img 
+                  src={product.imageUrl} 
+                  alt={product.name}
+                  className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110"
+                />
+              </div>
+
+              <span className="text-[#61897c] text-[10px] font-bold uppercase tracking-widest mb-2 block">{product.category}</span>
+              <h3 className="text-xl font-bold text-[#f6f8f7] mb-2">{product.name}</h3>
+              <p className="text-[#61897c] text-sm mb-8 line-clamp-2 leading-relaxed">
+                {product.description}
+              </p>
+
+              <a 
+                href={product.affiliateLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full py-4 bg-[#10221c] text-[#f6f8f7] font-bold rounded-2xl border border-[#233b32] group-hover:bg-[#13eca4] group-hover:text-[#111816] transition-all"
+              >
+                Learn More <ShoppingBag size={18} />
+              </a>
+            </div>
           ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 }

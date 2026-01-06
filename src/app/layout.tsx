@@ -31,21 +31,39 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     site: '@healththesis',
   },
+  icons: {
+    icon: '/assets/favicon.png',
+  },
 }
+
+import { ThemeProvider } from '@/components/ThemeProvider';
+import NewsletterPopup from '@/components/NewsletterPopup';
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
-      <body className="font-sans antialiased text-gray-900 bg-[#F8FAFC]">
-        <ReactQueryProvider>
-          {children}
-        </ReactQueryProvider>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+      </head>
+      <body className={inter.className}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={false}
+          forcedTheme="light"
+          disableTransitionOnChange
+        >
+          <ReactQueryProvider>
+            {children}
+            <NewsletterPopup />
+          </ReactQueryProvider>
+        </ThemeProvider>
         <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || ''} />
       </body>
     </html>
-  )
+  );
 }

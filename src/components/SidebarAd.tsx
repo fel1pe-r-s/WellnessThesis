@@ -40,20 +40,20 @@ export default function SidebarAd({ category, adSlotData }: SidebarAdProps) {
   if (!product) return null;
 
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center sticky top-24">
-      <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Sponsored</div>
+    <div className="bg-white dark:bg-[#152822] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-[#233b32] flex flex-col items-center text-center sticky top-24 transition-colors">
+      <div className="text-[10px] font-bold text-[#61897c] uppercase tracking-widest mb-4">Sponsored</div>
       
-      <div className="relative w-full aspect-square mb-4 rounded-xl overflow-hidden bg-gray-50 group">
+      <div className="relative w-full aspect-square mb-4 rounded-xl overflow-hidden bg-gray-50 dark:bg-[#10221c] group border border-transparent dark:border-[#233b32]">
          <img 
             src={product.imageUrl} 
             alt={product.name} 
             className="object-cover w-full h-full transform transition-transform duration-500 group-hover:scale-105"
          />
-         <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+         <div className="absolute inset-0 bg-[#13eca4]/10 opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
 
-      <h3 className="text-xl font-serif font-bold text-gray-900 mb-2">{product.name}</h3>
-      <p className="text-gray-600 text-sm mb-6 leading-relaxed">
+      <h3 className="text-xl font-serif font-bold text-gray-900 dark:text-[#f6f8f7] mb-2">{product.name}</h3>
+      <p className="text-[#61897c] text-sm mb-6 leading-relaxed">
         {product.description}
       </p>
 
@@ -61,7 +61,7 @@ export default function SidebarAd({ category, adSlotData }: SidebarAdProps) {
         href={product.link}
         target="_blank"
         rel="noopener noreferrer"
-        className="w-full bg-[#4D7C0F] text-white font-bold py-3 px-6 rounded-xl hover:bg-[#3f660c] transition-all transform hover:scale-[1.02] shadow-md flex items-center justify-center gap-2"
+        className="w-full bg-lime-700 text-white font-bold py-3 px-6 rounded-xl hover:bg-lime-800 transition-all transform hover:scale-[1.02] shadow-md flex items-center justify-center gap-2"
       >
         {product.cta} <ExternalLink className="w-4 h-4" />
       </a>

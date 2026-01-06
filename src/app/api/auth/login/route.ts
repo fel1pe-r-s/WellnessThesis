@@ -1,15 +1,16 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import User from '@/models/User';
+import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { signJwt } from '@/lib/jwt';
 
 export async function POST(request: Request) {
   try {
-    await dbConnect();
-    const { username, password } = await request.json();
+    const { email, password } = await request.json();
 
-    const user = await User.findOne({ username });
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
     if (!user) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
@@ -20,12 +21,18 @@ export async function POST(request: Request) {
     }
 
     const token = await signJwt({
-      userId: user._id,
-      username: user.username,
+      userId: user.id,
+      email: user.email,
       role: user.role,
     });
 
-    const response = NextResponse.json({ success: true, user: { username: user.username, role: user.role } });
+    const response = NextResponse.json({ 
+      success: true, 
+      user: { 
+        email: user.email,
+        name: user.name 
+      } 
+    });
     
     // Set cookie
     response.cookies.set('admin_token', token, {

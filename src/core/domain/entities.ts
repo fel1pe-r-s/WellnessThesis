@@ -1,3 +1,10 @@
+export interface User {
+  id: string;
+  email: string;
+  name?: string | null;
+  role: string;
+}
+
 export interface Post {
   id: string;
   title: string;
@@ -6,10 +13,12 @@ export interface Post {
   imageUrl?: string | null;
   category: string;
   published: boolean;
-  authorId: string;
+  authorId?: string | null;
   createdAt: Date;
   updatedAt: Date;
   ctaLink?: string | null;
+  productId?: string | null;
+  product?: Product | null;
 }
 
 export interface Product {

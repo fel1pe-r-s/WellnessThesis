@@ -23,7 +23,6 @@ O ambiente Docker simula o ambiente de produção e já configura o banco de dad
 2.  **Acessar a Aplicação:**
     - Site: [http://localhost:3000](http://localhost:3000)
     - Admin: [http://localhost:3000/admin/login](http://localhost:3000/admin/login)
-    - MongoDB Express (GUI): [http://localhost:8081](http://localhost:8081)
 
 ### 💻 Rodando Localmente (Sem Docker)
 

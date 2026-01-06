@@ -13,6 +13,7 @@ model User {
   email     String   @unique
   password  String
   name      String?
+  role      String   @default("admin")
   createdAt DateTime @default(now())
   posts     Post[]
 }
@@ -30,6 +31,8 @@ model Post {
   author    User?    @relation(fields: [authorId], references: [id])
   adSlots   Json?    // Stores structured ad config: { top?: string, sidebar?: string }
   ctaLink   String?
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id])
   published Boolean  @default(false)
 }
 
@@ -41,6 +44,7 @@ model Product {
   affiliateLink String
   category      String?
   createdAt     DateTime @default(now())
+  posts         Post[]
 }
 
 model Subscriber {

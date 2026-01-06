@@ -17,6 +17,14 @@ export class GetPostBySlugUseCase {
   }
 }
 
+export class GetRelatedPostsUseCase {
+  constructor(private postRepository: IPostRepository) {}
+
+  async execute(category: string, excludeId: string, limit: number = 3): Promise<Post[]> {
+    return this.postRepository.findRelated(category, excludeId, limit);
+  }
+}
+
 export class GetPostsByCategoryUseCase {
   constructor(private postRepository: IPostRepository) {}
 

@@ -13,6 +13,7 @@ export class PrismaPostRepository implements IPostRepository {
   async findBySlug(slug: string): Promise<Post | null> {
     return prisma.post.findUnique({
       where: { slug },
+      include: { product: true },
     }) as unknown as Post | null;
   }
 
@@ -20,12 +21,14 @@ export class PrismaPostRepository implements IPostRepository {
     return prisma.post.findMany({
       where: { category: { equals: category, mode: 'insensitive' } },
       orderBy: { createdAt: 'desc' },
+      include: { product: true },
     }) as unknown as Post[];
   }
 
   async findById(id: string): Promise<Post | null> {
     return prisma.post.findUnique({
       where: { id },
+      include: { product: true },
     }) as unknown as Post | null;
   }
 
@@ -53,6 +56,17 @@ export class PrismaPostRepository implements IPostRepository {
       });
       return true;
   }
+
+  async findRelated(category: string, excludeId: string, limit: number): Promise<Post[]> {
+    return prisma.post.findMany({
+      where: {
+        category: { equals: category, mode: 'insensitive' },
+        id: { not: excludeId },
+      },
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    }) as unknown as Post[];
+  }
 }
 
 export class PrismaProductRepository implements IProductRepository {
@@ -63,7 +77,35 @@ export class PrismaProductRepository implements IProductRepository {
   }
 
   async findAll(): Promise<Product[]> {
-    return prisma.product.findMany() as unknown as Product[];
+    return prisma.product.findMany({
+      orderBy: { createdAt: 'desc' },
+    }) as unknown as Product[];
+  }
+
+  async findById(id: string): Promise<Product | null> {
+    return prisma.product.findUnique({
+      where: { id },
+    }) as unknown as Product | null;
+  }
+
+  async create(data: any): Promise<Product> {
+    return prisma.product.create({
+      data,
+    }) as unknown as Product;
+  }
+
+  async update(id: string, data: any): Promise<Product> {
+    return prisma.product.update({
+      where: { id },
+      data,
+    }) as unknown as Product;
+  }
+
+  async delete(id: string): Promise<boolean> {
+    await prisma.product.delete({
+      where: { id },
+    });
+    return true;
   }
 }
 

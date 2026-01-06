@@ -32,12 +32,12 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   }
 
   return (
-    <div className="bg-[#F8FAFC] min-h-screen font-sans text-gray-900">
+    <div className="bg-background dark:bg-[#0f1715] min-h-screen font-sans text-foreground dark:text-gray-100 transition-colors duration-300">
       <Header />
       
-      <div className="bg-white border-b border-gray-100 py-16 text-center">
-        <h1 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 mb-4">{categoryName}</h1>
-        <p className="text-gray-500 max-w-xl mx-auto">
+      <div className="bg-surface dark:bg-[#1a2421] border-b border-border dark:border-[#2a3d38] py-16 text-center">
+        <h1 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 dark:text-gray-100 mb-4">{categoryName}</h1>
+        <p className="text-gray-500 dark:text-gray-400 max-w-xl mx-auto">
             Curated insights and scientific breakthroughs in {categoryName.toLowerCase()}.
         </p>
       </div>
@@ -49,7 +49,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
                 {posts.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {posts.map((post) => (
-                             <article key={post.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group">
+                             <article key={post.id} className="bg-surface dark:bg-[#1a2421] rounded-2xl shadow-sm border border-border dark:border-[#2a3d38] overflow-hidden hover:shadow-md transition-shadow group">
                                 <Link href={`/post/${post.slug}`}>
                                     <div className="aspect-video overflow-hidden bg-gray-100">
                                         <img 
@@ -62,23 +62,23 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
                                         <span className="text-xs font-bold text-[#4D7C0F] uppercase tracking-wider mb-2 block">
                                             {post.category}
                                         </span>
-                                        <h3 className="text-xl font-serif font-bold text-gray-900 mb-3 group-hover:text-[#4D7C0F] transition-colors">
-                                            {post.title}
-                                        </h3>
-                                        <p className="text-gray-600 text-sm line-clamp-3 mb-4">
+                                         <h3 className="text-xl font-serif font-bold text-gray-900 dark:text-gray-100 mb-3 group-hover:text-[#4D7C0F] dark:group-hover:text-[#5ea40d] transition-colors">
+                                             {post.title}
+                                         </h3>
+                                         <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3 mb-4">
                                             {/* Strip HTML roughly */}
                                             {post.content.replace(/<[^>]*>?/gm, '').substring(0, 120)}...
                                         </p>
-                                        <span className="text-sm font-bold text-gray-900 underline decoration-[#FFC857] decoration-2 underline-offset-2">
-                                            Read Article
-                                        </span>
+                                         <span className="text-sm font-bold text-gray-900 dark:text-gray-100 underline decoration-[#FFC857] dark:decoration-[#5ea40d] decoration-2 underline-offset-2">
+                                             Read Article
+                                         </span>
                                     </div>
                                 </Link>
                              </article>
                         ))}
                     </div>
                 ) : (
-                    <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-200">
+                    <div className="text-center py-20 bg-surface dark:bg-[#1a2421] rounded-2xl border border-dashed border-border dark:border-[#2a3d38]">
                         <p className="text-gray-500 text-lg">No articles found in this category yet.</p>
                         <Link href="/" className="text-[#4D7C0F] font-bold mt-4 inline-block hover:underline">
                             Return Home
