@@ -1,20 +1,20 @@
+import { getPostsUseCase } from '@/core/use-cases';
 import React from 'react';
-import dbConnect from '@/lib/mongodb';
-import Post from '@/models/Post';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
 import { TopAd, InFeedAd, SidebarAd } from '@/components/AdSlots';
+import NewsletterForm from '@/components/NewsletterForm';
+import ProductCarousel from '@/components/ProductCarousel';
 
 export const dynamic = 'force-dynamic';
 
 async function getPosts() {
-  await dbConnect();
-  return Post.find({}).sort({ createdAt: -1 }).limit(10).lean();
+  return getPostsUseCase.execute();
 }
 
 export default async function HomePage() {
-  const posts = await getPosts() as any[];
+  const posts = await getPosts();
   const heroPost = posts[0];
   const gridPosts = posts.slice(1);
 
@@ -41,13 +41,13 @@ export default async function HomePage() {
             {heroPost ? (
               <article className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 mb-12">
                 <img 
-                  src={heroPost.image_url || "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=1200&q=80"} 
+                  src={heroPost.imageUrl || "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=1200&q=80"} 
                   alt={heroPost.title} 
                   className="w-full h-64 md:h-80 object-cover"
                 />
                 <div className="p-8">
                   <div className="flex items-center text-sm text-[#4D7C0F] font-bold mb-3 uppercase tracking-wider">
-                    Metabolic Health • Editor&apos;s Choice
+                    {heroPost.category || 'Wellness'} • Editor&apos;s Choice
                   </div>
                   <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 font-serif">
                     <Link href={`/post/${heroPost.slug}`} className="hover:text-[#4D7C0F] transition-colors">
@@ -55,7 +55,7 @@ export default async function HomePage() {
                     </Link>
                   </h1>
                   <p className="text-gray-600 text-lg mb-6 line-clamp-3">
-                    {heroPost.content.replace(/<[^>]*>?/gm, '').substring(0, 200)}...
+                    {heroPost.content ? heroPost.content.replace(/<[^>]*>?/gm, '').substring(0, 200) : ''}...
                   </p>
                   <Link href={`/post/${heroPost.slug}`} className="bg-[#4D7C0F] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#3a5e0b] transition-colors duration-300 inline-block">
                     Read Full Report
@@ -72,15 +72,15 @@ export default async function HomePage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
               {gridPosts.map((post, index) => (
-                <React.Fragment key={post._id.toString()}>
+                <React.Fragment key={post.id}>
                   <article className="flex flex-col bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                     <img 
-                      src={post.image_url || "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=500&q=80"} 
+                      src={post.imageUrl || "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=500&q=80"} 
                       className="rounded-lg h-48 object-cover mb-4"
                     />
                     <h3 className="text-xl font-bold text-gray-900 mb-2 font-serif">{post.title}</h3>
                     <p className="text-sm text-gray-500 mb-4 line-clamp-2">
-                      {post.content.replace(/<[^>]*>?/gm, '').substring(0, 100)}...
+                       {post.content ? post.content.replace(/<[^>]*>?/gm, '').substring(0, 100) : ''}...
                     </p>
                     <Link href={`/post/${post.slug}`} className="text-[#4D7C0F] font-bold text-sm mt-auto">Read More &rarr;</Link>
                   </article>
@@ -124,16 +124,11 @@ export default async function HomePage() {
         </div>
       </main>
 
-      <section id="newsletter" className="py-16 bg-white border-t border-gray-100">
-        <div className="container mx-auto px-6 text-center">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4 font-serif">Get Weekly Health Theses</h2>
-            <p className="text-gray-600 mb-8 max-w-lg mx-auto">Join our community and get free recipes, workout plans, and supplement reviews.</p>
-            <form className="max-w-md mx-auto flex gap-2">
-                <input type="email" placeholder="Your Email" className="flex-grow px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#4D7C0F]" />
-                <button className="bg-[#4D7C0F] text-white font-bold px-6 py-3 rounded-lg hover:bg-[#3a5e0b]">Join</button>
-            </form>
-        </div>
-      </section>
+      <div className="container mx-auto px-6">
+           <NewsletterForm />
+      </div>
+
+      <ProductCarousel />
 
       <Footer />
     </div>

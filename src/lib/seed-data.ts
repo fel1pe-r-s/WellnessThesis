@@ -63,18 +63,20 @@ async function seed() {
         slug: 'metabolic-wall-after-35',
         imageUrl: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=80',
         content: `
-          <p class="lead">For years, you've heard the same advice: "Eat less, move more." But if you're over 35, you've likely noticed something frustrating. The rules have changed.</p>
+          <p class="lead text-xl text-gray-600 mb-8">For years, you've heard the same advice: "Eat less, move more." But if you're over 35, you've likely noticed something frustrating. The rules have changed.</p>
           
-          <h2>The Science of Mitochondrial Decline</h2>
-          <p>Recent studies in metabolic performance show that calorie counting is only half the battle. The real culprit? <strong>Mitochondrial efficiency.</strong> As we age, our "cellular power plants" lose their ability to convert stored fat into energy efficiently.</p>
+          <h2 class="text-2xl font-bold font-serif mb-4 mt-8">The Science of Mitochondrial Decline</h2>
+          <p class="mb-4">Recent studies in metabolic performance show that calorie counting is only half the battle. The real culprit? <strong>Mitochondrial efficiency.</strong> As we age, our "cellular power plants" lose their ability to convert stored fat into energy efficiently.</p>
           
-          <blockquote>"It's not about how much you eat, it's about how your cells handle the energy."</blockquote>
+          <blockquote class="border-l-4 border-[#4D7C0F] pl-4 italic text-gray-700 my-8 py-2 bg-gray-50 pr-4 rounded-r-lg">
+            "It's not about how much you eat, it's about how your cells handle the energy."
+          </blockquote>
           
-          <h2>The Fat Loss Plateau</h2>
-          <p>When your mitochondria are sluggish, your body enters a conservative state. Instead of burning fat for fuel, it begins to store it more aggressively. This leads to the dreaded "plateau".</p>
+          <h2 class="text-2xl font-bold font-serif mb-4 mt-8">The Fat Loss Plateau</h2>
+          <p class="mb-4">When your mitochondria are sluggish, your body enters a conservative state. Instead of burning fat for fuel, it begins to store it more aggressively. This leads to the dreaded "plateau". This is why you can be in a calorie deficit and still not see results on the scale.</p>
           
-          <h2>How to Re-Engage Your Metabolism</h2>
-          <p>To break through the wall, you need to focus on mitochondrial health. This involves specific nutritional protocols and supporting your body's natural efficiency.</p>
+          <h2 class="text-2xl font-bold font-serif mb-4 mt-8">How to Re-Engage Your Metabolism</h2>
+          <p class="mb-6">To break through the wall, you need to focus on mitochondrial health. This involves specific nutritional protocols and supporting your body's natural efficiency. Emerging research suggests that targeted supplementation can help "re-ignite" these dormant cellular engines.</p>
         `,
         category: 'Health',
         authorId: user.id,

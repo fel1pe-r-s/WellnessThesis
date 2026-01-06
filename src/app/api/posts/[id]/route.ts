@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import Post from '@/models/Post';
 import { verifyJwt } from '@/lib/jwt';
+import { getPostByIdUseCase, updatePostUseCase, deletePostUseCase } from '@/core/use-cases';
 
 export async function GET(
   request: Request,
@@ -9,8 +8,7 @@ export async function GET(
 ) {
   try {
     const { id } = await context.params;
-    await dbConnect();
-    const post = await Post.findById(id);
+    const post = await getPostByIdUseCase.execute(id);
     if (!post) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
@@ -31,9 +29,8 @@ export async function PUT(
 
   try {
     const { id } = await context.params;
-    await dbConnect();
     const body = await request.json();
-    const post = await Post.findByIdAndUpdate(id, body, { new: true });
+    const post = await updatePostUseCase.execute(id, body);
     if (!post) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
@@ -54,9 +51,8 @@ export async function DELETE(
 
   try {
     const { id } = await context.params;
-    await dbConnect();
-    const post = await Post.findByIdAndDelete(id);
-    if (!post) {
+    const success = await deletePostUseCase.execute(id);
+    if (!success) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
     return NextResponse.json({ success: true });

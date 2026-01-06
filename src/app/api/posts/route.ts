@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import Post from '@/models/Post';
 import { verifyJwt } from '@/lib/jwt';
+import { getPostsUseCase, createPostUseCase } from '@/core/use-cases';
 
 export async function GET() {
-  await dbConnect();
-  const posts = await Post.find({}).sort({ createdAt: -1 });
+  const posts = await getPostsUseCase.execute();
   return NextResponse.json(posts);
 }
 
@@ -15,16 +13,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  await dbConnect();
   const body = await request.json();
   
   try {
-    const post = await Post.create(body);
+    const post = await createPostUseCase.execute(body);
     return NextResponse.json(post, { status: 201 });
   } catch (error: any) {
-    if (error.code === 11000) {
-      return NextResponse.json({ error: 'Slug already exists' }, { status: 400 });
-    }
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
