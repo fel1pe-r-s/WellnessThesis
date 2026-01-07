@@ -22,13 +22,13 @@ export default async function HomePage() {
   return (
     <div className="bg-white min-h-screen font-sans text-slate-900 transition-colors duration-300">
       {/* AD SPOT 1: Top Notification Bar */}
-      <div className="bg-gray-900 text-white text-xs md:text-sm py-2 text-center px-4">
+      {/* <div className="bg-gray-900 text-white text-xs md:text-sm py-2 text-center px-4">
         <p>
           <span className="font-bold text-[#FFC857] uppercase mr-2">Trend Alert:</span>
           New research on mitochondrial efficiency released.
           <Link href="/mytolin" className="underline hover:text-[#FFC857] ml-1 transition-colors">Read the Report &rarr;</Link>
         </p>
-      </div>
+      </div> */}
 
       <Header />
 

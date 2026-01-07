@@ -19,7 +19,7 @@ export default function Header() {
             <Link href="/" className="flex items-center gap-3 group">
               <div className="relative w-10 h-10">
                 <Image 
-                  src="/assets/logo.png" 
+                  src="/assets/favicon.png" 
                   alt="WellnessThesis Logo" 
                   fill 
                   className="object-contain transform transition-transform group-hover:scale-110 duration-300"
@@ -32,7 +32,7 @@ export default function Header() {
 
             {/* Desktop Nav */}
             <nav className="hidden md:flex items-center space-x-8 text-sm font-semibold tracking-wide text-slate-600">
-            {['Metabolism', 'Nutrition', 'Beauty', 'Fitness'].map((item) => (
+            {/* {['Metabolism', 'Nutrition', 'Beauty', 'Fitness'].map((item) => (
                 <Link 
                     key={item} 
                     href={`/category/${item.toLowerCase()}`} 
@@ -41,8 +41,8 @@ export default function Header() {
                     <span className="group-hover:text-lime-700 transition-colors uppercase tracking-widest text-[11px]">{item}</span>
                     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-lime-700 transition-all duration-300 group-hover:w-full"></span>
                 </Link>
-            ))}
-            </nav>
+            ))}*/}
+            </nav> 
 
             {/* Actions */}
             <div className="hidden md:flex items-center gap-2">
