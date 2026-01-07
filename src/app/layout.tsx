@@ -17,7 +17,7 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
   title: {
     template: '%s | HealthThesis',
-    default: 'HealthThesis | Science-Based Wellness, Beauty & Metabolism',
+    default: 'HealthThesis | Well-Being, Beauty, Health and Fitness',
   },
   description: 'Uncover the science behind metabolic health, natural beauty, and longevity. Expert insights for a healthier, more vibrant you over 35.',
   keywords: ['Metabolic Health', 'Mitochondria', 'Natural Beauty', 'Anti-aging', 'Wellness', 'Science-based health'],
