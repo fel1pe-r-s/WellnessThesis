@@ -20,6 +20,7 @@ export const ProductSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   description: z.string().nullable().optional(),
   imageUrl: z.string().url(),
+  secondaryImageUrl: z.string().url().nullable().optional(),
   affiliateLink: z.string().url(),
   category: z.string().min(1, 'Category is required'),
   isFeatured: z.boolean().default(false),

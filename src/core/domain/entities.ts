@@ -27,9 +27,10 @@ export interface Product {
   name: string;
   description: string;
   imageUrl?: string | null;
+  secondaryImageUrl?: string | null; // Added for featured spotlight
   affiliateLink: string;
   category: string;
-  isFeatured: boolean; // NEW: Added for spotlight
+  isFeatured: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

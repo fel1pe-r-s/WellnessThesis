@@ -43,6 +43,7 @@ export class MySQLProductRepository implements IProductRepository {
       name: data.name,
       description: data.description,
       imageUrl: data.imageUrl || null,
+      secondaryImageUrl: data.secondaryImageUrl || null,
       affiliateLink: data.affiliateLink,
       category: data.category,
       isFeatured: data.isFeatured ? 1 : 0,

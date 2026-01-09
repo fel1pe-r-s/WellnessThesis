@@ -8,6 +8,7 @@ interface FeaturedProduct {
   name: string;
   description: string | null;
   imageUrl: string;
+  secondaryImageUrl?: string | null;
   affiliateLink: string;
 }
 
@@ -16,7 +17,7 @@ export default async function FeaturedProductSpotlight() {
 
   try {
     const [rows] = await pool.query<RowDataPacket[]>(
-      'SELECT id, name, description, imageUrl, affiliateLink FROM products WHERE isFeatured = 1 LIMIT 1'
+      'SELECT id, name, description, imageUrl, secondaryImageUrl, affiliateLink FROM products WHERE isFeatured = 1 LIMIT 1'
     );
     if (rows.length > 0) {
       product = rows[0] as FeaturedProduct;
@@ -44,7 +45,7 @@ export default async function FeaturedProductSpotlight() {
       {product.imageUrl && (
         <div className="relative w-full h-40 mb-6 rounded-2xl overflow-hidden border border-white/5">
             <img 
-                src={product.imageUrl} 
+                src={product.secondaryImageUrl || product.imageUrl} 
                 alt={product.name} 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             />

@@ -1,5 +1,5 @@
-import React from 'react';
-import { getPostsUseCase, getAllProductsUseCase, subscribeNewsletterUseCase } from '@/core/use-cases';
+import React, { Suspense } from 'react';
+import Link from 'next/link';
 import { 
   FileText, 
   ShoppingBag, 
@@ -8,20 +8,58 @@ import {
   ArrowDownRight,
   TrendingUp,
   Clock,
-  Eye
+  Edit,
+  Star
 } from 'lucide-react';
+import pool from '@/lib/db';
+import { RowDataPacket } from 'mysql2';
+import { Post, Product } from '@/core/domain/entities';
 
 async function getStats() {
-  const posts = await getPostsUseCase.execute();
-  const products = await getAllProductsUseCase.execute();
-  // Assume we need a way to count subscribers if not already implemented
-  // For now, let's just get everything
-  const recentPosts = posts.slice(0, 5);
+  // Real stats from DB
+  const [postResult]: any = await pool.query('SELECT COUNT(*) as count FROM posts');
+  const postCount = postResult[0].count;
+
+  const [productResult]: any = await pool.query('SELECT COUNT(*) as count FROM products');
+  const productCount = productResult[0].count;
+
+  const [subscriberResult]: any = await pool.query('SELECT COUNT(*) as count FROM subscribers');
+  const subscriberCount = subscriberResult[0].count;
+  
+  // Real Recent Posts
+  const [recentPostsRows] = await pool.query<RowDataPacket[]>(
+    'SELECT * FROM posts ORDER BY createdAt DESC LIMIT 5'
+  );
+  
+  const recentPosts = recentPostsRows.map(row => ({
+    ...row,
+    createdAt: new Date(row.createdAt),
+  })) as Post[];
+
+  // Real Top Categories
+  const [categoryRows] = await pool.query<RowDataPacket[]>(
+    'SELECT category, COUNT(*) as count FROM posts GROUP BY category ORDER BY count DESC LIMIT 3'
+  );
+
+  const topCategories = categoryRows.map(row => ({
+    label: row.category,
+    count: row.count,
+    progress: (postCount > 0 ? Math.min((row.count / postCount) * 100, 100) : 0) + '%'
+  }));
+
+  // Featured Product
+  const [featuredRows] = await pool.query<RowDataPacket[]>(
+    'SELECT * FROM products WHERE isFeatured = 1 LIMIT 1'
+  );
+  const featuredProduct = featuredRows.length > 0 ? (featuredRows[0] as Product) : null;
   
   return {
-    totalPosts: posts.length,
-    totalProducts: products.length,
+    totalPosts: postCount,
+    totalProducts: productCount,
+    totalSubscribers: subscriberCount,
     recentPosts,
+    topCategories,
+    featuredProduct
   };
 }
 
@@ -30,40 +68,40 @@ export default async function DashboardPage() {
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900">Dashboard Overview</h1>
-        <p className="text-slate-500 mt-2">Welcome back to the WellnessThesis command center.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-serif font-black text-slate-900 tracking-tight">Dashboard Overview</h1>
+          <p className="text-slate-500 font-medium">Monitoring the WellnessThesis ecosystem.</p>
+        </div>
+        <div className="flex gap-3">
+          <Link href="/admin/posts/new" className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition-colors flex items-center gap-2">
+            <FileText size={14} /> New Post
+          </Link>
+          <Link href="/admin/products/new" className="px-4 py-2 bg-white border border-slate-200 text-slate-900 text-xs font-bold rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-2">
+            <ShoppingBag size={14} /> Add Product
+          </Link>
+        </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatsCard 
           title="Total Posts" 
           value={stats.totalPosts.toString()} 
-          icon={<FileText size={24} />} 
-          trend="+12%" 
-          trendUp={true} 
+          icon={<FileText size={20} />} 
+          trend="Lifetime" 
         />
         <StatsCard 
           title="Affiliate Products" 
           value={stats.totalProducts.toString()} 
-          icon={<ShoppingBag size={24} />} 
-          trend="+5%" 
-          trendUp={true} 
+          icon={<ShoppingBag size={20} />} 
+          trend="Lifetime" 
         />
         <StatsCard 
-          title="Total Views" 
-          value="12.4k" 
-          icon={<Eye size={24} />} 
-          trend="+18%" 
-          trendUp={true} 
-        />
-        <StatsCard 
-          title="Active Sessions" 
-          value="48" 
-          icon={<Users size={24} />} 
-          trend="-2%" 
-          trendUp={false} 
+          title="Subscribers" 
+          value={stats.totalSubscribers.toString()} 
+          icon={<Users size={20} />} 
+          trend="Community" 
         />
       </div>
 
@@ -71,78 +109,132 @@ export default async function DashboardPage() {
         {/* Recent Activity */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold flex items-center gap-2">
+            <h2 className="text-xl font-serif font-black flex items-center gap-2 text-slate-900">
               <Clock size={20} className="text-lime-700" />
-              Recent Posts
+              Recent Insights
             </h2>
-            <button className="text-sm font-bold text-lime-700 hover:underline">View All</button>
+            <Link href="/admin/posts" className="text-xs font-black text-lime-700 uppercase tracking-widest hover:underline">View All</Link>
           </div>
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 border-b border-slate-200">
-                <tr>
-                  <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[10px]">Title</th>
-                  <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[10px]">Category</th>
-                  <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[10px]">Status</th>
-                  <th className="px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[10px]">Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {stats.recentPosts.map((post) => (
-                  <tr key={post.id} className="group hover:bg-slate-50 transition-colors cursor-pointer">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
-                          {post.imageUrl ? (
-                            <img src={post.imageUrl} alt="" className="object-cover w-full h-full" />
-                          ) : (
-                            <FileText size={16} className="text-slate-400" />
-                          )}
-                        </div>
-                        <span className="font-bold text-slate-900 truncate max-w-[200px]">{post.title}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="px-2 py-1 bg-lime-700/10 text-lime-700 rounded-md text-[10px] font-bold uppercase tracking-wider">
-                        {post.category}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-600"></span>
-                        Published
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-slate-400 text-xs">
-                      {new Date(post.createdAt).toLocaleDateString()}
-                    </td>
+          <div className="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50/50 border-b border-slate-200">
+                  <tr>
+                    <th className="px-6 py-4 font-black text-slate-400 uppercase tracking-widest text-[9px]">Insight</th>
+                    <th className="px-6 py-4 font-black text-slate-400 uppercase tracking-widest text-[9px]">Category</th>
+                    <th className="px-6 py-4 font-black text-slate-400 uppercase tracking-widest text-[9px]">Date</th>
+                    <th className="px-6 py-4"></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {stats.recentPosts.map((post) => (
+                    <tr key={post.id} className="group hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200 shrink-0">
+                            {post.imageUrl ? (
+                              <img src={post.imageUrl} alt="" className="object-cover w-full h-full" />
+                            ) : (
+                              <FileText size={16} className="text-slate-400" />
+                            )}
+                          </div>
+                          <span className="font-bold text-slate-900 truncate max-w-[180px]">{post.title}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="px-2 py-1 bg-lime-100 text-lime-700 rounded-md text-[9px] font-black uppercase tracking-wider">
+                          {post.category}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-slate-400 text-xs font-medium">
+                        {new Date(post.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <Link href={`/admin/posts/edit/${post.id}`} className="p-2 text-slate-400 hover:text-lime-700 transition-colors inline-block">
+                          <Edit size={16} />
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                  {stats.recentPosts.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-12 text-center text-slate-400 italic">No posts yet.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
-        {/* Upgrade/CTA Card */}
+        {/* Sidebar Cards */}
         <div className="space-y-6">
-          <div className="bg-gradient-to-br from-lime-700 to-lime-600 p-6 rounded-2xl text-white shadow-xl relative overflow-hidden group">
-            <div className="absolute -right-8 -top-8 bg-white/20 h-32 w-32 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-            <h3 className="text-xl font-black uppercase tracking-tight mb-2">Maximize Growth</h3>
-            <p className="text-sm font-medium opacity-80 mb-6">Upgrade your analytics and SEO tools for deeper mitochondrial insights.</p>
-            <button className="w-full py-3 bg-white text-lime-700 font-bold rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-1">
-              Go Premium
-            </button>
+          {/* Featured Product Management Card */}
+          <div className="bg-slate-900 p-8 rounded-[2rem] text-white shadow-2xl relative overflow-hidden group">
+            <div className="absolute -right-12 -top-12 bg-lime-500/20 h-40 w-40 rounded-full blur-3xl group-hover:bg-lime-500/30 transition-colors duration-700"></div>
+            
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-6">
+                <Star size={16} className="text-lime-500 fill-lime-500" />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-lime-500">Active Spotlight</span>
+              </div>
+
+              {stats.featuredProduct ? (
+                <div className="space-y-6">
+                  <div className="flex gap-4">
+                    <div className="h-16 w-16 rounded-2xl bg-white/10 border border-white/10 overflow-hidden shrink-0">
+                      <img 
+                        src={stats.featuredProduct.imageUrl || ''} 
+                        alt={stats.featuredProduct.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg leading-tight line-clamp-2">{stats.featuredProduct.name}</h3>
+                      <p className="text-xs text-white/50 font-medium mt-1 uppercase tracking-wider">{stats.featuredProduct.category}</p>
+                    </div>
+                  </div>
+                  
+                  <Link 
+                    href={`/admin/products/edit/${stats.featuredProduct.id}`}
+                    className="w-full py-4 bg-white text-slate-900 font-black rounded-2xl shadow-lg hover:bg-lime-500 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2 uppercase tracking-widest text-[10px]"
+                  >
+                    Edit Featured Product <Edit size={14} />
+                  </Link>
+                </div>
+              ) : (
+                <div className="py-4 text-center">
+                  <p className="text-sm text-white/50 mb-6 italic">No product is currently featured in the spotlight.</p>
+                  <Link 
+                    href="/admin/products"
+                    className="w-full py-4 bg-white/10 text-white font-black rounded-2xl border border-white/10 hover:bg-white/20 transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-[10px]"
+                  >
+                    Select Featured
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-             <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-slate-900">
+          {/* Top Categories */}
+          <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm">
+             <h3 className="text-lg font-serif font-black mb-6 flex items-center gap-2 text-slate-900">
                 <TrendingUp size={20} className="text-lime-700" />
-                Top Categories
+                Top Content Area
              </h3>
-             <div className="space-y-4">
-                <CategoryProgress label="Metabolism" count={12} color="bg-lime-700" progress="75%" />
-                <CategoryProgress label="Nutrition" count={8} color="bg-blue-400" progress="45%" />
-                <CategoryProgress label="Fitness" count={5} color="bg-purple-400" progress="30%" />
+             <div className="space-y-6">
+                {stats.topCategories.map((cat, i) => (
+                  <CategoryProgress 
+                    key={cat.label}
+                    label={cat.label} 
+                    count={cat.count} 
+                    color={i === 0 ? "bg-lime-600" : i === 1 ? "bg-slate-400" : "bg-slate-200"} 
+                    progress={cat.progress} 
+                  />
+                ))}
+                {stats.topCategories.length === 0 && (
+                  <p className="text-sm text-slate-400 italic">No category data available.</p>
+                )}
              </div>
           </div>
         </div>

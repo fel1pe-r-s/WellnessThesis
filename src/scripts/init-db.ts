@@ -1,4 +1,8 @@
 import pool from '../infrastructure/repositories/mysql/pool';
+import bcrypt from 'bcryptjs';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 async function initDb() {
   console.log('Initializing MySQL Database...');
@@ -22,6 +26,7 @@ async function initDb() {
         name VARCHAR(255) NOT NULL,
         description TEXT,
         imageUrl TEXT,
+        secondaryImageUrl TEXT,
         affiliateLink TEXT NOT NULL,
         category VARCHAR(100),
         isFeatured TINYINT(1) DEFAULT 0,
@@ -58,6 +63,29 @@ async function initDb() {
         createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // 5. Default Admin User
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    const adminName = process.env.ADMIN_NAME || 'Admin';
+
+    if (adminEmail && adminPassword) {
+      const [rows]: any = await pool.query('SELECT * FROM users WHERE email = ?', [adminEmail]);
+      
+      if (rows.length === 0) {
+        console.log(`Creating default admin user: ${adminEmail}`);
+        const hashedPassword = await bcrypt.hash(adminPassword, 10);
+        const id = Math.random().toString(36).substring(7);
+        
+        await pool.query(
+          'INSERT INTO users (id, email, password, name, role) VALUES (?, ?, ?, ?, ?)',
+          [id, adminEmail, hashedPassword, adminName, 'admin']
+        );
+        console.log('Admin user created successfully!');
+      } else {
+        console.log('Admin user already exists.');
+      }
+    }
 
     console.log('Database initialization completed successfully!');
     process.exit(0);

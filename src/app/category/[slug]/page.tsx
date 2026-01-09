@@ -1,24 +1,42 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import Link from 'next/link';
-import SidebarAd from '@/components/SidebarAd';
+import PostCard from '@/components/PostCard';
+import LatestPostsSidebar from '@/components/LatestPostsSidebar';
 import NewsletterForm from '@/components/NewsletterForm';
-import { getPostsByCategoryUseCase } from '@/core/use-cases';
+import pool from '@/lib/db';
+import { RowDataPacket } from 'mysql2';
+import { Post } from '@/core/domain/entities';
+import { SidebarSkeleton, PostCardSkeleton } from '@/components/Skeleton';
+import { BookOpen } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
-async function getCategoryPosts(category: string) {
-    return getPostsByCategoryUseCase.execute(category);
+async function getCategoryPosts(category: string): Promise<Post[]> {
+  try {
+    const [rows] = await pool.query<RowDataPacket[]>(
+      'SELECT * FROM posts WHERE LOWER(category) = LOWER(?) AND published = 1 ORDER BY createdAt DESC',
+      [category]
+    );
+    return rows.map(row => ({
+      ...row,
+      published: Boolean(row.published),
+      createdAt: new Date(row.createdAt),
+      updatedAt: new Date(row.updatedAt),
+    })) as Post[];
+  } catch (error) {
+    console.error('Error fetching category posts:', error);
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
     const category = slug.charAt(0).toUpperCase() + slug.slice(1);
     return {
-        title: `${category} Articles | WellnessThesis`,
-        description: `Explore our latest science-based articles on ${category}.`,
+        title: `${category} | WellnessThesis`,
+        description: `Discovery and insights about ${category.toLowerCase()} to improve your daily well-being.`,
     };
 }
 
@@ -32,71 +50,65 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   }
 
   return (
-    <div className="bg-background dark:bg-[#0f1715] min-h-screen font-sans text-foreground dark:text-gray-100 transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-lime-200 selection:text-lime-900">
       <Header />
       
-      <div className="bg-surface dark:bg-[#1a2421] border-b border-border dark:border-[#2a3d38] py-16 text-center">
-        <h1 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 dark:text-gray-100 mb-4">{categoryName}</h1>
-        <p className="text-gray-500 dark:text-gray-400 max-w-xl mx-auto">
-            Curated insights and scientific breakthroughs in {categoryName.toLowerCase()}.
-        </p>
+      {/* Category Header */}
+      <div className="bg-white border-b border-slate-200">
+        <div className="container mx-auto px-6 py-16 text-center">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-lime-100 text-lime-700 text-[10px] uppercase font-black tracking-[0.2em] mb-4">
+            Category
+          </span>
+          <h1 className="text-4xl md:text-5xl font-serif font-black text-slate-900 mb-4 tracking-tight">{categoryName}</h1>
+          <p className="text-slate-500 font-medium max-w-xl mx-auto italic">
+              Carefully shared insights and findings about {categoryName.toLowerCase()} for the community.
+          </p>
+        </div>
       </div>
 
       <div className="container mx-auto px-6 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             
+            {/* Main Content */}
             <div className="lg:col-span-8">
                 {posts.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                         {posts.map((post) => (
-                             <article key={post.id} className="bg-surface dark:bg-[#1a2421] rounded-2xl shadow-sm border border-border dark:border-[#2a3d38] overflow-hidden hover:shadow-md transition-shadow group">
-                                <Link href={`/post/${post.slug}`}>
-                                    <div className="aspect-video overflow-hidden bg-gray-100">
-                                        <img 
-                                            src={post.imageUrl || 'https://images.unsplash.com/photo-1550989460-0adf9ea622e2?q=80&w=600'} 
-                                            alt={post.title}
-                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                        />
-                                    </div>
-                                    <div className="p-6">
-                                        <span className="text-xs font-bold text-[#4D7C0F] uppercase tracking-wider mb-2 block">
-                                            {post.category}
-                                        </span>
-                                         <h3 className="text-xl font-serif font-bold text-gray-900 dark:text-gray-100 mb-3 group-hover:text-[#4D7C0F] dark:group-hover:text-[#5ea40d] transition-colors">
-                                             {post.title}
-                                         </h3>
-                                         <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3 mb-4">
-                                            {/* Strip HTML roughly */}
-                                            {post.content.replace(/<[^>]*>?/gm, '').substring(0, 120)}...
-                                        </p>
-                                         <span className="text-sm font-bold text-gray-900 dark:text-gray-100 underline decoration-[#FFC857] dark:decoration-[#5ea40d] decoration-2 underline-offset-2">
-                                             Read Article
-                                         </span>
-                                    </div>
-                                </Link>
-                             </article>
+                          <div key={post.id} className="transition-transform duration-500 hover:-translate-y-2">
+                            <PostCard post={post} />
+                          </div>
                         ))}
                     </div>
                 ) : (
-                    <div className="text-center py-20 bg-surface dark:bg-[#1a2421] rounded-2xl border border-dashed border-border dark:border-[#2a3d38]">
-                        <p className="text-gray-500 text-lg">No articles found in this category yet.</p>
-                        <Link href="/" className="text-[#4D7C0F] font-bold mt-4 inline-block hover:underline">
-                            Return Home
-                        </Link>
+                    <div className="text-center py-20 bg-white/50 backdrop-blur-sm rounded-[2.5rem] border border-slate-100 shadow-sm">
+                        <p className="text-slate-400 font-medium italic">No insights found in this category yet. Stay tuned!</p>
                     </div>
                 )}
             </div>
 
+            {/* Sidebar */}
             <aside className="lg:col-span-4 space-y-8">
-                <SidebarAd category={categoryName} />
+                <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-slate-100 transition-all hover:shadow-md">
+                  <h4 className="font-bold text-slate-900 mb-4 uppercase text-[10px] tracking-[0.2em] flex items-center gap-2">
+                    <BookOpen className="w-3.5 h-3.5 text-lime-700" />
+                    WellnessThesis
+                  </h4>
+                  <p className="text-slate-600 text-sm leading-relaxed font-medium">
+                    Exploring {categoryName.toLowerCase()} through shared discoveries. Practical tips and science-based findings for a better lifestyle.
+                  </p>
+                </div>
+                
+                <Suspense fallback={<SidebarSkeleton />}>
+                  <LatestPostsSidebar />
+                </Suspense>
             </aside>
 
         </div>
       </div>
 
-      <div className="container mx-auto px-6">
+      <section className="container mx-auto px-6 py-20">
         <NewsletterForm />
-      </div>
+      </section>
 
       <Footer />
     </div>
