@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const { slug } = await params;
     const category = slug.charAt(0).toUpperCase() + slug.slice(1);
     return {
-        title: `${category} Articles | HealthThesis`,
+        title: `${category} Articles | WellnessThesis`,
         description: `Explore our latest science-based articles on ${category}.`,
     };
 }

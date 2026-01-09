@@ -139,10 +139,10 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
 
               <div className="flex items-center gap-4 py-6 border-b border-slate-200/60">
                 <div className="w-12 h-12 bg-gradient-to-br from-lime-600 to-lime-700 rounded-2xl flex items-center justify-center text-white font-black shadow-lg shadow-lime-700/20">
-                  HT
+                  WT
                 </div>
                 <div className="flex flex-col">
-                  <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-900">HealthThesis Discovery</p>
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-900">WellnessThesis Discovery</p>
                   <p className="text-xs font-medium text-slate-500">Shared with the community</p>
                 </div>
               </div>

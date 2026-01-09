@@ -118,7 +118,7 @@ export function SearchDialog({ isOpen, onClose }: { isOpen: boolean; onClose: ()
 
         <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-between items-center text-[10px] text-slate-400">
            <span>Press <kbd className="font-sans border border-slate-200 px-1 rounded shadow-sm bg-white">ESC</kbd> to close</span>
-           <span className="font-bold text-lime-700">HealthThesis Search</span>
+           <span className="font-bold text-lime-700">WellnessThesis Search</span>
         </div>
       </div>
     </div>

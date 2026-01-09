@@ -3,7 +3,6 @@ import { Inter, Playfair_Display } from 'next/font/google'
 import './globals.css'
 import ReactQueryProvider from '@/lib/providers/ReactQueryProvider'
 import { GoogleAnalytics } from '@next/third-parties/google'
-import Script from 'next/script'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -17,20 +16,20 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | HealthThesis',
-    default: 'HealthThesis | Well-Being, Beauty, Health and Fitness',
+    template: '%s | WellnessThesis',
+    default: 'WellnessThesis | Wellness, Beauty, Health and Fitness',
   },
   description: 'Sharing the latest discoveries in wellness, beauty, health, and fitness. Practical tips and insights for healthy living.',
   keywords: ['Wellness', 'Healthy Living', 'Beauty', 'Fitness', 'Recipes', 'Weight Loss'],
-  authors: [{ name: 'HealthThesis' }],
+  authors: [{ name: 'WellnessThesis' }],
   openGraph: {
-    siteName: 'HealthThesis',
+    siteName: 'WellnessThesis',
     locale: 'en_US',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    site: '@healththesis',
+    site: '@wellnessthesis',
   },
   icons: {
     icon: '/assets/favicon.png',
@@ -45,19 +44,10 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const adsenseId = process.env.NEXT_PUBLIC_ADSENSE_ID || 'ca-pub-XXXX'; // User should set this in .env
-
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-        {/* Google AdSense Script */}
-        <Script
-          async
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}`}
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
       </head>
       <body className={`${inter.variable} ${playfair.variable} font-sans`}>
         <ThemeProvider

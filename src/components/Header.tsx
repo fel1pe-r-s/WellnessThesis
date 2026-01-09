@@ -36,7 +36,7 @@ export default function Header() {
                 />
               </div>
               <span className="text-2xl font-extrabold tracking-tight text-slate-900 font-serif">
-                  Health<span className="text-lime-700 bg-clip-text text-transparent bg-gradient-to-r from-lime-700 to-lime-600">Thesis</span>
+                  Wellness<span className="text-lime-700 bg-clip-text text-transparent bg-gradient-to-r from-lime-700 to-lime-600">Thesis</span>
               </span>
             </Link>
 

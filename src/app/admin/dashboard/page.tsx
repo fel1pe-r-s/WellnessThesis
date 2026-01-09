@@ -32,7 +32,7 @@ export default async function DashboardPage() {
     <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
       <div>
         <h1 className="text-3xl font-bold text-slate-900">Dashboard Overview</h1>
-        <p className="text-slate-500 mt-2">Welcome back to the HealthThesis command center.</p>
+        <p className="text-slate-500 mt-2">Welcome back to the WellnessThesis command center.</p>
       </div>
 
       {/* Stats Grid */}

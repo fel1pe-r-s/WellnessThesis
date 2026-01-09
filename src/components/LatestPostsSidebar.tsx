@@ -3,7 +3,6 @@ import { Clock, BookOpen } from 'lucide-react';
 import { Post } from '@/core/domain/entities';
 import pool from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
-import AdBanner from './AdBanner';
 
 export default async function LatestPostsSidebar() {
   let posts: Post[] = [];
@@ -59,8 +58,6 @@ export default async function LatestPostsSidebar() {
           )}
         </div>
       </div>
-
-      <AdBanner slot="sidebar-bottom" />
     </div>
   );
 }

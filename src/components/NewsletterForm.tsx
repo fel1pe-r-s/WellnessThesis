@@ -35,7 +35,7 @@ export default function NewsletterForm() {
 
       <div className="relative z-10 max-w-2xl mx-auto">
         <span className="inline-block px-4 py-1.5 rounded-full bg-lime-100/50 text-lime-700 text-[10px] uppercase font-black tracking-[0.2em] mb-6">
-          HEALTH THESIS NEWSLETTER
+          WELLNESS THESIS NEWSLETTER
         </span>
         <h2 className="text-4xl md:text-5xl font-serif font-black mb-6 text-slate-900 leading-tight">
           Join the <span className="text-lime-700 italic">Inner Circle</span>

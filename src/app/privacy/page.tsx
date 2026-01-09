@@ -9,7 +9,7 @@ export default function PrivacyPolicy() {
         <h1 className="text-4xl font-black font-serif mb-8 text-slate-900 border-b pb-4">Privacy Policy</h1>
         <div className="space-y-6 text-lg leading-relaxed">
           <p>
-            Welcome to HealthThesis. Your privacy is critically important to us.
+            Welcome to WellnessThesis. Your privacy is critically important to us.
           </p>
           <section>
             <h2 className="text-2xl font-bold text-slate-900 mb-4">1. Information We Collect</h2>

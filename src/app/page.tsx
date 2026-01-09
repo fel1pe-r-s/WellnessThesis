@@ -12,10 +12,9 @@ import { RowDataPacket } from 'mysql2';
 import { Post } from '@/core/domain/entities';
 import { Suspense } from 'react';
 import { PostCardSkeleton, SidebarSkeleton, Skeleton } from '@/components/Skeleton';
-import AdBanner from '@/components/AdBanner';
 
 export const metadata: Metadata = {
-  title: 'HealthThesis | Your Guide to Wellness & Vitality',
+  title: 'WellnessThesis | Your Guide to Wellness & Vitality',
   description: 'Sharing news, recipes, and practical tips on health and beauty to help you feel your best every day.',
 };
 
@@ -39,7 +38,7 @@ async function PostGrid() {
   if (posts.length === 0) {
     return (
       <div className="text-center py-20 bg-white/50 backdrop-blur-sm rounded-[2.5rem] border border-slate-100 shadow-sm">
-        <p className="text-slate-400 font-medium italic">Welcome to HealthThesis. New insights coming soon!</p>
+        <p className="text-slate-400 font-medium italic">Welcome to WellnessThesis. New insights coming soon!</p>
       </div>
     );
   }
@@ -56,8 +55,7 @@ async function PostGrid() {
         </section>
       )}
 
-      {/* Ad Slot */}
-      <AdBanner slot="home-top" />
+      {/* Ad Slot - REMOVED for Approval Phase */}
 
       {/* Title Section */}
       <div className="flex items-center gap-4">
@@ -122,7 +120,7 @@ export default async function Home() {
             <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-slate-100 transition-all hover:shadow-md">
               <h4 className="font-bold text-slate-900 mb-4 uppercase text-[10px] tracking-[0.2em] flex items-center gap-2">
                 <BookOpen className="w-3.5 h-3.5 text-lime-700" />
-                About HealthThesis
+                About WellnessThesis
               </h4>
               <p className="text-slate-600 text-sm leading-relaxed font-medium">
                 I share updates on well-being, beauty, and healthy living. These are practical tips and recipes to help you on your journey.

@@ -54,7 +54,7 @@ export default function AdminLayout({
             <TrendingUp size={24} />
           </Link>
           <div className="flex flex-col">
-            <h1 className="text-slate-900 text-base font-bold leading-tight uppercase tracking-wider">HealthThesis</h1>
+            <h1 className="text-slate-900 text-base font-bold leading-tight uppercase tracking-wider">WellnessThesis</h1>
             <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Admin Control</p>
           </div>
         </div>
