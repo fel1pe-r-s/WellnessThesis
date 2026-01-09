@@ -60,3 +60,17 @@ export class GetPostByIdUseCase {
         return this.postRepository.findById(id);
     }
 }
+
+export class GetCategoriesUseCase {
+  constructor(private postRepository: IPostRepository) {}
+  async execute(): Promise<string[]> {
+    return this.postRepository.getCategories();
+  }
+}
+
+export class SearchPostsUseCase {
+  constructor(private postRepository: IPostRepository) {}
+  async execute(query: string): Promise<Post[]> {
+    return this.postRepository.search(query);
+  }
+}

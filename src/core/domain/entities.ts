@@ -1,6 +1,7 @@
 export interface User {
   id: string;
   email: string;
+  password?: string; // Needed for auth
   name?: string | null;
   role: string;
 }
@@ -28,6 +29,7 @@ export interface Product {
   imageUrl?: string | null;
   affiliateLink: string;
   category: string;
+  isFeatured: boolean; // NEW: Added for spotlight
   createdAt: Date;
   updatedAt: Date;
 }

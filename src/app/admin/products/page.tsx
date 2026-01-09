@@ -280,9 +280,18 @@ export default function ProductsPage() {
                     </TableCell>
                     <TableCell className="px-6 py-4 text-right">
                        <div className="flex items-center justify-end gap-2">
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-slate-400 hover:text-lime-700 hover:bg-lime-700/10 rounded-lg">
-                             <Edit2 size={16} />
-                          </Button>
+                           <Button 
+                             size="icon" 
+                             variant="ghost" 
+                             className={`h-8 w-8 rounded-lg transition-colors ${product.isFeatured ? 'text-yellow-500 bg-yellow-50' : 'text-slate-400 hover:text-yellow-500 hover:bg-yellow-50'}`}
+                             onClick={() => handleToggleFeatured(product.id)}
+                             title={product.isFeatured ? "Featured" : "Set as Featured"}
+                           >
+                              <Star size={16} className={product.isFeatured ? "fill-current" : ""} />
+                           </Button>
+                           <Button size="icon" variant="ghost" className="h-8 w-8 text-slate-400 hover:text-lime-700 hover:bg-lime-700/10 rounded-lg">
+                              <Edit2 size={16} />
+                           </Button>
                           <Button 
                             size="icon" 
                             variant="ghost" 

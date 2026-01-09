@@ -1,114 +1,204 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import SidebarAd from '@/components/SidebarAd';
+import LatestPostsSidebar from '@/components/LatestPostsSidebar';
 import AffiliateCTA from '@/components/AffiliateCTA';
 import ProductCarousel from '@/components/ProductCarousel';
-import { getPostBySlugUseCase, getRelatedPostsUseCase } from '@/core/use-cases';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import pool from '@/lib/db';
+import { RowDataPacket } from 'mysql2';
+import { Post, Product } from '@/core/domain/entities';
+import { BookOpen, Clock } from 'lucide-react';
+import { SidebarSkeleton, PostCardSkeleton } from '@/components/Skeleton';
 
 export const dynamic = 'force-dynamic';
 
+async function getPostBySlug(slug: string): Promise<(Post & { product?: Product }) | null> {
+  try {
+    const [rows] = await pool.query<RowDataPacket[]>(
+      'SELECT p.*, pr.name as productName, pr.description as productDescription, pr.imageUrl as productImageUrl, pr.affiliateLink as productAffiliateLink FROM posts p LEFT JOIN products pr ON p.productId = pr.id WHERE p.slug = ? AND p.published = 1',
+      [slug]
+    );
+
+    if (rows.length === 0) return null;
+
+    const row = rows[0];
+    const post: Post & { product?: Product } = {
+      id: row.id,
+      title: row.title,
+      slug: row.slug,
+      content: row.content,
+      imageUrl: row.imageUrl,
+      category: row.category,
+      published: Boolean(row.published),
+      authorId: row.authorId,
+      createdAt: new Date(row.createdAt),
+      updatedAt: new Date(row.updatedAt),
+      ctaLink: row.ctaLink,
+      productId: row.productId,
+    };
+
+    if (row.productId) {
+      post.product = {
+        id: row.productId,
+        name: row.productName,
+        description: row.productDescription,
+        imageUrl: row.productImageUrl,
+        affiliateLink: row.productAffiliateLink,
+        category: row.category, 
+        isFeatured: false, 
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+    }
+
+    return post;
+  } catch (error) {
+    console.error('Error fetching post by slug:', error);
+    return null;
+  }
+}
+
+async function RelatedPostsSection({ category, excludeId }: { category: string, excludeId: string }) {
+  const [rows] = await pool.query<RowDataPacket[]>(
+    'SELECT * FROM posts WHERE category = ? AND id != ? AND published = 1 LIMIT 3',
+    [category, excludeId]
+  );
+  const relatedPosts = rows.map(row => ({
+    ...row,
+    published: Boolean(row.published),
+    createdAt: new Date(row.createdAt),
+    updatedAt: new Date(row.updatedAt),
+  })) as Post[];
+
+  if (relatedPosts.length === 0) return null;
+
+  return (
+    <section className="mt-24 pt-24 border-t border-slate-200/60">
+      <div className="flex items-center gap-4 mb-12">
+        <h3 className="text-3xl font-black font-serif tracking-tight">Recommended <span className="text-lime-700 italic">Reading</span></h3>
+        <div className="h-px flex-1 bg-slate-200/60"></div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+        {relatedPosts.map((related) => (
+          <Link key={related.id} href={`/post/${related.slug}`} className="group space-y-4">
+            <div className="relative aspect-[4/3] rounded-[2rem] overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-500">
+              <img 
+                src={related.imageUrl || 'https://images.unsplash.com/photo-1550989460-0adf9ea622e2?q=80&w=200'} 
+                alt={related.title}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            </div>
+            <div className="space-y-2">
+              <p className="text-lime-700 text-[10px] font-black uppercase tracking-[0.2em]">
+                {related.category || 'Wellness'}
+              </p>
+              <h4 className="text-xl font-black text-slate-900 group-hover:text-lime-700 transition-colors line-clamp-2 font-serif leading-tight">
+                {related.title}
+              </h4>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const post = await getPostBySlugUseCase.execute(slug);
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     notFound();
   }
 
-  const relatedPosts = await getRelatedPostsUseCase.execute(post.category || '', post.id);
-
   return (
-    <div className="bg-background dark:bg-[#0f1715] min-h-screen font-sans text-foreground dark:text-gray-100 transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-lime-200 selection:text-lime-900">
       <Header />
       
       <div className="container mx-auto px-6 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Main Article */}
-          <article className="lg:col-span-8 bg-surface dark:bg-[#1a2421] p-8 md:p-12 rounded-2xl shadow-sm border border-border dark:border-[#2a3d38]">
-            <header className="mb-8">
-              <div className="flex items-center gap-2 mb-4">
-                  <span className="bg-[#13eca4]/10 dark:bg-[#13eca4]/20 text-[#111816] dark:text-[#13eca4] px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                    {post.category || 'Wellness'}
-                  </span>
-                  <span className="text-gray-400 text-sm">•</span>
-                  <span className="text-gray-500 text-sm">{new Date(post.createdAt).toLocaleDateString()}</span>
+          <article className="lg:col-span-8 space-y-8">
+            <header className="space-y-6">
+              <div className="flex items-center gap-3">
+                <span className="bg-lime-100 text-lime-700 px-4 py-1.5 rounded-full text-[10px] uppercase font-black tracking-[0.2em]">
+                  {post.category || 'Wellness'}
+                </span>
+                <div className="flex items-center gap-1.5 text-slate-400 text-xs font-bold uppercase tracking-wider">
+                  <Clock className="w-3.5 h-3.5" />
+                  {new Date(post.createdAt).toLocaleDateString()}
+                </div>
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-6 font-serif leading-tight">
+              
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 font-serif leading-[1.1] tracking-tight">
                 {post.title}
               </h1>
-              <div className="flex items-center text-gray-500 dark:text-gray-400 text-sm gap-3 border-b border-gray-100 dark:border-[#2a3d38] pb-8">
-                <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
-                    {/* Placeholder for author image */}
-                    <div className="w-full h-full bg-[#13eca4] flex items-center justify-center text-[#111816] font-bold">HT</div>
+
+              <div className="flex items-center gap-4 py-6 border-b border-slate-200/60">
+                <div className="w-12 h-12 bg-gradient-to-br from-lime-600 to-lime-700 rounded-2xl flex items-center justify-center text-white font-black shadow-lg shadow-lime-700/20">
+                  HT
                 </div>
-                <div>
-                     <p className="font-bold text-gray-900 dark:text-gray-200 uppercase text-xs tracking-wide">HealthThesis Editorial</p>
-                     <p className="text-xs">Medically Reviewed</p>
+                <div className="flex flex-col">
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-900">HealthThesis Discovery</p>
+                  <p className="text-xs font-medium text-slate-500">Shared with the community</p>
                 </div>
               </div>
             </header>
 
             {post.imageUrl && (
-              <img src={post.imageUrl} alt={post.title} className="w-full h-[400px] object-cover rounded-xl mb-12 shadow-md" />
+              <div className="relative aspect-[16/9] rounded-[2.5rem] overflow-hidden group shadow-2xl shadow-slate-200/50">
+                <img 
+                  src={post.imageUrl} 
+                  alt={post.title} 
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 via-transparent to-transparent opacity-60" />
+              </div>
             )}
 
             <div 
-              className="prose prose-lg max-w-none text-gray-700 dark:text-gray-300 leading-relaxed font-serif prose-headings:font-bold prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-a:text-[#13eca4] dark:prose-a:text-[#13eca4] prose-img:rounded-xl"
+              className="prose prose-slate prose-lg max-w-none prose-serif prose-headings:font-black prose-headings:tracking-tight prose-a:text-lime-700 prose-a:no-underline hover:prose-a:underline prose-img:rounded-[2rem] prose-blockquote:border-lime-700 prose-blockquote:bg-lime-50/50 prose-blockquote:p-8 prose-blockquote:rounded-3xl prose-blockquote:not-italic prose-blockquote:font-bold prose-blockquote:text-slate-800"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
 
             {post.product && (
-              <AffiliateCTA 
-                productName={post.product.name}
-                description={post.product.description || "Discover the natural path to wellness."}
-                link={post.product.affiliateLink}
-              />
+              <div className="pt-8">
+                <AffiliateCTA 
+                  productName={post.product.name}
+                  description={post.product.description || "Discover this discovery carefully shared for your well-being."}
+                  link={post.product.affiliateLink}
+                />
+              </div>
             )}
           </article>
 
           {/* Sidebar */}
           <aside className="lg:col-span-4 space-y-8">
-             <SidebarAd category={post.category} />
-             
-             {/* Fallback "About" Widget */}
-             <div className="bg-[#4D7C0F] dark:bg-[#1a2421] border border-transparent dark:border-[#2a3d38] p-8 rounded-2xl text-white text-center">
-                <h4 className="font-serif font-bold text-xl mb-2">About HealthThesis</h4>
-                <p className="opacity-90 text-sm mb-6">Demystifying wellness with science-backed insights for longevity and vitality.</p>
-                <Link href="/about" className="inline-block bg-white text-[#4D7C0F] px-6 py-2 rounded-full font-bold text-sm hover:bg-gray-100 transition-colors">
-                    Our Mission
-                </Link>
-             </div>
+            <div className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-sm border border-slate-100 transition-all hover:shadow-md">
+              <h4 className="font-bold text-slate-900 mb-4 uppercase text-[10px] tracking-[0.2em] flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-lime-700" />
+                About this blog
+              </h4>
+              <p className="text-slate-600 text-sm leading-relaxed font-medium mb-6">
+                I share updates on well-being, beauty, health, and fitness. These are practical tips, recipes, and discoveries to help you on your healthy living journey.
+              </p>
+              <Link href="/" className="inline-flex w-full items-center justify-center bg-slate-900 text-white px-6 py-4 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-lime-700 transition-all active:scale-95 shadow-xl shadow-slate-200/50">
+                Back to insights
+              </Link>
+            </div>
+            
+            <Suspense fallback={<SidebarSkeleton />}>
+              <LatestPostsSidebar />
+            </Suspense>
           </aside>
         </div>
 
-        {/* Related Posts */}
-        {relatedPosts.length > 0 && (
-          <div className="mt-20">
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-8 font-serif">Recommended Reading</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {relatedPosts.map((related) => (
-                <Link key={related.id} href={`/post/${related.slug}`} className="group">
-                  <div className="relative aspect-video rounded-xl overflow-hidden mb-4 shadow-sm border border-gray-100 dark:border-[#2a3d38]">
-                    <img 
-                      src={related.imageUrl || 'https://images.unsplash.com/photo-1550989460-0adf9ea622e2?q=80&w=200'} 
-                      alt={related.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                  <p className="text-[#13eca4] dark:text-[#13eca4] text-[10px] font-bold uppercase tracking-wider mb-2">
-                    {related.category || 'Wellness'}
-                  </p>
-                  <h4 className="text-lg font-bold text-gray-900 dark:text-gray-100 group-hover:text-[#13eca4] dark:group-hover:text-[#13eca4] transition-colors line-clamp-2">
-                    {related.title}
-                  </h4>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
+        <Suspense fallback={<div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8"><PostCardSkeleton /><PostCardSkeleton /><PostCardSkeleton /></div>}>
+          <RelatedPostsSection category={post.category || ''} excludeId={post.id} />
+        </Suspense>
       </div>
 
       <ProductCarousel />

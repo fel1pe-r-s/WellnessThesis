@@ -1,122 +1,149 @@
-import { getPostsUseCase } from '@/core/use-cases';
-import React from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import Link from 'next/link';
-import { TopAd, InFeedAd, SidebarAd } from '@/components/AdSlots';
-import NewsletterForm from '@/components/NewsletterForm';
+import PostCard from '@/components/PostCard';
 import ProductCarousel from '@/components/ProductCarousel';
+import NewsletterForm from '@/components/NewsletterForm';
 import FeaturedProductSpotlight from '@/components/FeaturedProductSpotlight';
+import LatestPostsSidebar from '@/components/LatestPostsSidebar';
+import { Metadata } from 'next';
+import { BookOpen } from 'lucide-react';
+import pool from '@/lib/db';
+import { RowDataPacket } from 'mysql2';
+import { Post } from '@/core/domain/entities';
+import { Suspense } from 'react';
+import { PostCardSkeleton, SidebarSkeleton, Skeleton } from '@/components/Skeleton';
+import AdBanner from '@/components/AdBanner';
+
+export const metadata: Metadata = {
+  title: 'HealthThesis | Your Guide to Wellness & Vitality',
+  description: 'Sharing news, recipes, and practical tips on health and beauty to help you feel your best every day.',
+};
 
 export const dynamic = 'force-dynamic';
 
-async function getPosts() {
-  return getPostsUseCase.execute();
-}
+async function PostGrid() {
+  const [rows] = await pool.query<RowDataPacket[]>(
+    'SELECT * FROM posts WHERE published = 1 ORDER BY createdAt DESC LIMIT 5'
+  );
+  
+  const posts = rows.map(row => ({
+    ...row,
+    published: Boolean(row.published),
+    createdAt: new Date(row.createdAt),
+    updatedAt: new Date(row.updatedAt),
+  })) as Post[];
 
-export default async function HomePage() {
-  const posts = await getPosts();
   const heroPost = posts[0];
   const gridPosts = posts.slice(1);
 
+  if (posts.length === 0) {
+    return (
+      <div className="text-center py-20 bg-white/50 backdrop-blur-sm rounded-[2.5rem] border border-slate-100 shadow-sm">
+        <p className="text-slate-400 font-medium italic">Welcome to HealthThesis. New insights coming soon!</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-white min-h-screen font-sans text-slate-900 transition-colors duration-300">
-      {/* AD SPOT 1: Top Notification Bar */}
-      {/* <div className="bg-gray-900 text-white text-xs md:text-sm py-2 text-center px-4">
-        <p>
-          <span className="font-bold text-[#FFC857] uppercase mr-2">Trend Alert:</span>
-          New research on mitochondrial efficiency released.
-          <Link href="/mytolin" className="underline hover:text-[#FFC857] ml-1 transition-colors">Read the Report &rarr;</Link>
-        </p>
-      </div> */}
+    <div className="space-y-16">
+      {/* Hero Post */}
+      {heroPost && (
+        <section className="relative group">
+          <div className="absolute -inset-1 bg-gradient-to-r from-lime-600 to-emerald-600 rounded-[2.5rem] blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+          <div className="relative">
+            <PostCard post={heroPost} featured />
+          </div>
+        </section>
+      )}
 
+      {/* Ad Slot */}
+      <AdBanner slot="home-top" />
+
+      {/* Title Section */}
+      <div className="flex items-center gap-4">
+        <h2 className="text-3xl font-black font-serif tracking-tight">Latest <span className="text-lime-700 italic">Insights</span></h2>
+        <div className="h-px flex-1 bg-slate-200/60"></div>
+      </div>
+
+      {/* Post Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        {gridPosts.map((post) => (
+          <div key={post.id} className="transition-transform duration-500 hover:-translate-y-2">
+            <PostCard post={post} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PostsLoading() {
+  return (
+    <div className="space-y-16">
+      <PostCardSkeleton />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <PostCardSkeleton />
+        <PostCardSkeleton />
+      </div>
+    </div>
+  );
+}
+
+function SidebarLoading() {
+  return (
+    <div className="space-y-8">
+      <div className="bg-white p-6 rounded-2xl border border-slate-100">
+        <Skeleton className="h-4 w-1/2 mb-4" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-3/4" />
+      </div>
+      <SidebarSkeleton />
+    </div>
+  );
+}
+
+export default async function Home() {
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-lime-200 selection:text-lime-900">
       <Header />
-
+      
       <main className="container mx-auto px-6 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          
-          {/* Main Content Area */}
+          {/* Main Content */}
           <div className="lg:col-span-8">
-            
-            {/* Hero Post */}
-            {heroPost ? (
-              <article className="bg-white rounded-2xl shadow-lg overflow-hidden border border-slate-100 mb-12">
-                <img 
-                  src={heroPost.imageUrl || "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=1200&q=80"} 
-                  alt={heroPost.title} 
-                  className="w-full h-64 md:h-80 object-cover"
-                />
-                <div className="p-8">
-                  <div className="flex items-center text-sm text-lime-700 font-bold mb-3 uppercase tracking-wider">
-                    {heroPost.category || 'Wellness'} • Editor&apos;s Choice
-                  </div>
-                  <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 font-serif">
-                    <Link href={`/post/${heroPost.slug}`} className="hover:text-lime-700 transition-colors">
-                      {heroPost.title}
-                    </Link>
-                  </h1>
-                  <p className="text-gray-600 text-lg mb-6 line-clamp-3">
-                    {heroPost.content ? heroPost.content.replace(/<[^>]*>?/gm, '').substring(0, 200) : ''}...
-                  </p>
-                  <Link href={`/post/${heroPost.slug}`} className="bg-lime-700 text-white font-bold py-3 px-6 rounded-lg hover:bg-lime-800 transition-colors duration-300 inline-block shadow-md">
-                    Read Full Report
-                  </Link>
-                </div>
-              </article>
-            ) : (
-                <div className="bg-white rounded-2xl p-12 text-center mb-12 border border-dashed border-gray-300">
-                    <p className="text-gray-500 italic">Welcome to HealthThesis. Start by adding your first post in the admin panel.</p>
-                </div>
-            )}
-
-            <h3 className="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2 font-serif">Latest Insights</h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-              {gridPosts.map((post, index) => (
-                <React.Fragment key={post.id}>
-                  <article className="flex flex-col bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-slate-100">
-                    <img 
-                      src={post.imageUrl || "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=500&q=80"} 
-                      className="rounded-lg h-48 object-cover mb-4"
-                    />
-                    <h3 className="text-xl font-bold text-slate-900 mb-2 font-serif">{post.title}</h3>
-                    <p className="text-sm text-slate-500 mb-4 line-clamp-2">
-                       {post.content ? post.content.replace(/<[^>]*>?/gm, '').substring(0, 100) : ''}...
-                    </p>
-                    <Link href={`/post/${post.slug}`} className="text-lime-700 font-bold text-sm mt-auto">Read More &rarr;</Link>
-                  </article>
-                  {/* Insert native ad after the first small article post */}
-                  {index === 0 && <InFeedAd />}
-                </React.Fragment>
-              ))}
-            </div>
+            <Suspense fallback={<PostsLoading />}>
+              <PostGrid />
+            </Suspense>
           </div>
 
           {/* Sidebar */}
           <aside className="lg:col-span-4 space-y-8">
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-              <h4 className="font-bold text-slate-900 mb-4 uppercase text-xs tracking-wider">About HealthThesis</h4>
-              <p className="text-slate-600 text-sm leading-relaxed">
-                Practical tips and insights on wellness, nutrition, beauty, and healthy living to help you feel your best every day.
+            <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-slate-100 transition-all hover:shadow-md">
+              <h4 className="font-bold text-slate-900 mb-4 uppercase text-[10px] tracking-[0.2em] flex items-center gap-2">
+                <BookOpen className="w-3.5 h-3.5 text-lime-700" />
+                About HealthThesis
+              </h4>
+              <p className="text-slate-600 text-sm leading-relaxed font-medium">
+                I share updates on well-being, beauty, and healthy living. These are practical tips and recipes to help you on your journey.
               </p>
             </div>
 
-            <div className="sticky top-24">
+            <Suspense fallback={<SidebarLoading />}>
               <FeaturedProductSpotlight />
-              
-              <div className="mt-8">
-                <SidebarAd />
-              </div>
-            </div>
+              <LatestPostsSidebar />
+            </Suspense>
           </aside>
         </div>
       </main>
 
-      <div className="container mx-auto px-6">
-           <NewsletterForm />
-      </div>
-
+      {/* Featured Section */}
       <ProductCarousel />
+
+      {/* Newsletter Section */}
+      <section className="container mx-auto px-6 py-20">
+        <NewsletterForm />
+      </section>
 
       <Footer />
     </div>

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getUserByEmailUseCase } from '@/core/use-cases';
 import bcrypt from 'bcryptjs';
 import { signJwt } from '@/lib/jwt';
 
@@ -7,11 +7,9 @@ export async function POST(request: Request) {
   try {
     const { email, password } = await request.json();
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
+    const user = await getUserByEmailUseCase.execute(email);
 
-    if (!user) {
+    if (!user || !user.password) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 

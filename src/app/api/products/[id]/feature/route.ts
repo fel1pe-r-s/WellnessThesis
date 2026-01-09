@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { repositories } from '@/core/domain/provider';
 import { verifyAuth } from '@/lib/auth';
 
 export async function PATCH(
@@ -15,17 +15,8 @@ export async function PATCH(
 
     const { id } = await params;
 
-    // First, unfeatured all products
-    await prisma.product.updateMany({
-      where: { isFeatured: true },
-      data: { isFeatured: false },
-    });
-
-    // Then, set the selected product as featured
-    const product = await prisma.product.update({
-      where: { id },
-      data: { isFeatured: true },
-    });
+    // Set the selected product as featured (repository handles unfeaturing others)
+    const product = await repositories.productRepository.setFeatured(id);
 
     return NextResponse.json(product);
   } catch (error) {

@@ -1,28 +1,55 @@
-import React from 'react';
+'use client';
 
-export function TopAd({ script }: { script?: string }) {
-  if (!script) return (
-    <div className="bg-gray-100 dark:bg-[#1a2421] py-4 text-center text-xs text-gray-400 dark:text-gray-500 border-dashed border-2 border-border dark:border-[#2a3d38]">
-      TOP AD SLOT (Google Ads)
+import { useEffect, useState } from 'react';
+
+/**
+ * Common AdSense wrapper that follows the user's specific logic.
+ * It remains hidden if no AdSense client ID is provided.
+ */
+function AdSenseBlock({ slot }: { slot: string }) {
+  const [shouldRender, setShouldRender] = useState(false);
+  const adsenseId = process.env.NEXT_PUBLIC_ADSENSE_ID;
+
+  useEffect(() => {
+    // Only attempt to render if we have a valid-looking ID
+    if (adsenseId && adsenseId.startsWith('ca-pub-') && adsenseId !== 'ca-pub-XXXX') {
+      setShouldRender(true);
+      try {
+        ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+      } catch (e) {
+        console.error("AdSense Error:", e);
+      }
+    }
+  }, [adsenseId]);
+
+  if (!shouldRender) return null;
+
+  return (
+    <div style={{ textAlign: 'center', margin: '20px 0' }}>
+      <ins
+        className="adsbygoogle"
+        style={{ display: 'block' }}
+        data-ad-client={adsenseId}
+        data-ad-slot={slot}
+        data-ad-format="auto"
+        data-full-width-responsive="true"
+      />
     </div>
   );
-  return <div dangerouslySetInnerHTML={{ __html: script }} />;
 }
 
-export function SidebarAd({ script }: { script?: string }) {
-  if (!script) return (
-    <div className="bg-gray-100 dark:bg-[#1a2421] h-64 flex items-center justify-center text-xs text-gray-400 dark:text-gray-500 border-dashed border-2 border-border dark:border-[#2a3d38] rounded-xl">
-      SIDEBAR AD SLOT
-    </div>
-  );
-  return <div dangerouslySetInnerHTML={{ __html: script }} />;
+export function TopAd({ slot = 'default-top' }: { slot?: string }) {
+  return <AdSenseBlock slot={slot} />;
 }
 
-export function InFeedAd({ script }: { script?: string }) {
-  if (!script) return (
-    <div className="bg-[#FDFDEA] dark:bg-[#1a2421] border-2 border-[#FFC857] dark:border-[#5ea40d] p-6 rounded-xl text-center text-xs text-gray-400 dark:text-gray-500 border-dashed">
-      IN-FEED NATIVE AD SLOT
-    </div>
-  );
-  return <div dangerouslySetInnerHTML={{ __html: script }} />;
+export function InFeedAd({ slot = 'default-infeed' }: { slot?: string }) {
+  return <AdSenseBlock slot={slot} />;
+}
+
+export function SidebarAd({ slot = 'default-sidebar' }: { slot?: string }) {
+  return <AdSenseBlock slot={slot} />;
+}
+
+export default function AdBanner({ slot }: { slot: string }) {
+  return <AdSenseBlock slot={slot} />;
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { searchPostsUseCase } from '@/core/use-cases';
 
 export async function GET(request: Request) {
   const { searchParams  } = new URL(request.url);
@@ -10,24 +10,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const posts = await prisma.post.findMany({
-      where: {
-        OR: [
-          { title: { contains: query, mode: 'insensitive' } },
-          { content: { contains: query, mode: 'insensitive' } },
-          { category: { contains: query, mode: 'insensitive' } },
-        ],
-      },
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        category: true,
-        imageUrl: true,
-      },
-      take: 10,
-    });
-
+    const posts = await searchPostsUseCase.execute(query);
     return NextResponse.json(posts);
   } catch (error) {
     console.error('Search error:', error);

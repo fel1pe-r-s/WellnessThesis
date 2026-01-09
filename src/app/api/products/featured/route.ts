@@ -1,13 +1,9 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { repositories } from '@/core/domain/provider';
 
 export async function GET() {
   try {
-    const featuredProduct = await prisma.product.findFirst({
-      where: {
-        isFeatured: true,
-      },
-    });
+    const featuredProduct = await repositories.productRepository.findFeatured();
 
     if (!featuredProduct) {
       return NextResponse.json(

@@ -1,8 +1,7 @@
-'use client';
-
-import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { Star } from 'lucide-react';
+import pool from '@/lib/db';
+import { RowDataPacket } from 'mysql2';
 
 interface FeaturedProduct {
   id: string;
@@ -12,57 +11,59 @@ interface FeaturedProduct {
   affiliateLink: string;
 }
 
-export default function FeaturedProductSpotlight() {
-  const { data: product, isLoading } = useQuery<FeaturedProduct>({
-    queryKey: ['featured-product'],
-    queryFn: async () => {
-      const res = await fetch('/api/products/featured');
-      if (!res.ok) {
-        if (res.status === 404) return null;
-        throw new Error('Failed to fetch featured product');
-      }
-      return res.json();
-    },
-  });
+export default async function FeaturedProductSpotlight() {
+  let product: FeaturedProduct | null = null;
 
-  if (isLoading) {
-    return (
-      <div className="bg-gradient-to-br from-lime-700 to-lime-800 rounded-xl p-6 text-center text-white shadow-xl relative overflow-hidden animate-pulse">
-        <div className="h-24"></div>
-      </div>
+  try {
+    const [rows] = await pool.query<RowDataPacket[]>(
+      'SELECT id, name, description, imageUrl, affiliateLink FROM products WHERE isFeatured = 1 LIMIT 1'
     );
+    if (rows.length > 0) {
+      product = rows[0] as FeaturedProduct;
+    }
+  } catch (error) {
+    console.error('Error fetching featured product:', error);
   }
 
   if (!product) {
-    return null; // Don't show anything if no featured product
+    return null;
   }
 
   return (
-    <div className="bg-gradient-to-br from-lime-700 to-lime-800 rounded-xl p-6 text-center text-white shadow-xl relative overflow-hidden group">
-      {/* Decorative circles */}
-      <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-white opacity-10 rounded-full"></div>
-      <div className="absolute bottom-0 left-0 -ml-8 -mb-8 w-24 h-24 bg-yellow-400 opacity-20 rounded-full"></div>
+    <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-[2rem] p-8 text-center text-white shadow-2xl relative overflow-hidden group border border-slate-700/50">
+      <div className="absolute -top-24 -right-24 w-64 h-64 bg-lime-500/10 rounded-full blur-3xl opacity-50 group-hover:opacity-100 transition-opacity duration-700" />
+      <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-lime-400/10 rounded-full blur-2xl opacity-30 group-hover:opacity-60 transition-opacity duration-700" />
+      
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-lime-500/50 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
 
-      {/* Badge */}
-      <span className="inline-flex items-center gap-1 bg-yellow-400 text-slate-900 text-xs font-extrabold px-2 py-1 rounded uppercase mb-4 shadow-sm">
+      <div className="inline-flex items-center gap-1.5 bg-lime-700/20 border border-lime-500/30 text-lime-400 text-[10px] font-black px-3 py-1.5 rounded-full uppercase mb-6 shadow-lg backdrop-blur-md">
         <Star className="w-3 h-3 fill-current" />
-        Trending Now
-      </span>
+        Spotlight of the Week
+      </div>
 
-      {/* Product Info */}
-      <h3 className="text-xl font-bold mb-3 font-serif">{product.name}</h3>
-      {product.description && (
-        <p className="text-sm text-lime-50 mb-6 line-clamp-2">{product.description}</p>
+      {product.imageUrl && (
+        <div className="relative w-full h-40 mb-6 rounded-2xl overflow-hidden border border-white/5">
+            <img 
+                src={product.imageUrl} 
+                alt={product.name} 
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent" />
+        </div>
       )}
 
-      {/* CTA Button */}
+      <h3 className="text-2xl font-black mb-3 font-serif tracking-tight leading-tight">{product.name}</h3>
+      {product.description && (
+        <p className="text-sm text-slate-400 mb-8 line-clamp-2 font-medium leading-relaxed">{product.description}</p>
+      )}
+
       <Link
         href={product.affiliateLink}
         target="_blank"
         rel="noopener noreferrer"
-        className="block w-full bg-white text-lime-700 font-bold py-3 rounded-lg shadow-md hover:bg-yellow-400 hover:text-slate-900 transition-all duration-300 transform group-hover:-translate-y-1"
+        className="block w-full bg-lime-700 hover:bg-lime-600 text-white font-black py-4 rounded-2xl shadow-[0_8px_20px_-5px_rgba(77,124,15,0.4)] hover:shadow-[0_12px_25px_-5px_rgba(77,124,15,0.6)] transition-all duration-300 transform group-hover:-translate-y-1 active:scale-95 uppercase tracking-widest text-[11px]"
       >
-        View Product
+        Explore Product
       </Link>
     </div>
   );
