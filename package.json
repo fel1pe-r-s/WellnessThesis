@@ -5,11 +5,11 @@
   "main": "index.js",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "init-db": "tsx src/scripts/init-db.ts",
+    "build": "init-db && next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest",
-    "init-db": "tsx src/scripts/init-db.ts"
+    "test": "vitest"
   },
   "keywords": [],
   "author": "",
