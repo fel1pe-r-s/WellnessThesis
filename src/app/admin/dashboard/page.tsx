@@ -15,6 +15,8 @@ import pool from '@/lib/db';
 
 import { Post, Product } from '@/core/domain/entities';
 
+export const dynamic = 'force-dynamic';
+
 async function getStats() {
   // Real stats from DB
   const { rows: postRows } = await pool.query('SELECT COUNT(*) as count FROM posts');
