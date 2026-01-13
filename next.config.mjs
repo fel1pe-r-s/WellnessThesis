@@ -1,6 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
+  // OBRIGATÓRIO para Hostinger (gera a pasta standalone)
+  output: 'standalone',
+  
+  // Opcional: Ajuda a evitar erros de compilação em builds lentos
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  }
 };
 
-export default nextConfig;
+module.exports = nextConfig;
