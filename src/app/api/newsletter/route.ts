@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { SubscriberSchema } from '@/lib/schemas';
 import pool from '@/lib/db';
-import { ResultSetHeader } from 'mysql2';
+
 
 export async function POST(req: Request) {
   try {
@@ -11,8 +11,14 @@ export async function POST(req: Request) {
     const id = Math.random().toString(36).substring(7);
     const now = new Date();
     
-    await pool.query<ResultSetHeader>(
-      'INSERT INTO subscribers (id, email, createdAt) VALUES (?, ?, ?)',
+    // Postgres doesn't ignore duplicate keys by default without ON CONFLICT, 
+    // but the original code didn't handle unique constraint error explicitly or relied on try/catch.
+    // The Schema check is simple email.
+    // Using ON CONFLICT DO NOTHING to match "subscribe successfully" even if already there, or return error.
+    // Original code was just INSERT. If unique index on email, it throws.
+    
+    await pool.query(
+      'INSERT INTO subscribers (id, email, created_at) VALUES ($1, $2, $3)',
       [id, email, now]
     );
 

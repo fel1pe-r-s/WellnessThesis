@@ -8,7 +8,7 @@ import LatestPostsSidebar from '@/components/LatestPostsSidebar';
 import { Metadata } from 'next';
 import { BookOpen } from 'lucide-react';
 import pool from '@/lib/db';
-import { RowDataPacket } from 'mysql2';
+
 import { Post } from '@/core/domain/entities';
 import { Suspense } from 'react';
 import { PostCardSkeleton, SidebarSkeleton, Skeleton } from '@/components/Skeleton';
@@ -21,15 +21,21 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 
 async function PostGrid() {
-  const [rows] = await pool.query<RowDataPacket[]>(
-    'SELECT * FROM posts WHERE published = 1 ORDER BY createdAt DESC LIMIT 5'
+  const { rows } = await pool.query(
+    'SELECT * FROM posts WHERE published = true ORDER BY created_at DESC LIMIT 5'
   );
   
-  const posts = rows.map(row => ({
-    ...row,
-    published: Boolean(row.published),
-    createdAt: new Date(row.createdAt),
-    updatedAt: new Date(row.updatedAt),
+  const posts = rows.map((row: any) => ({
+    id: row.id,
+    title: row.title,
+    slug: row.slug,
+    content: row.content,
+    imageUrl: row.image_url,
+    category: row.category,
+    published: row.published,
+    authorId: row.author_id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   })) as Post[];
 
   const heroPost = posts[0];

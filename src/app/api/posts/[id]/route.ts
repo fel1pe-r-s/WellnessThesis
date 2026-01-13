@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { verifyJwt } from '@/lib/jwt';
 import pool from '@/lib/db';
 import { PostSchema } from '@/lib/schemas';
-import { RowDataPacket, ResultSetHeader } from 'mysql2';
+
 
 export async function GET(
   request: Request,
@@ -10,17 +10,26 @@ export async function GET(
 ) {
   try {
     const { id } = await context.params;
-    const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM posts WHERE id = ?', [id]);
+    const { rows } = await pool.query('SELECT * FROM posts WHERE id = $1', [id]);
     
     if (rows.length === 0) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
+    const row = rows[0];
     const post = {
-      ...rows[0],
-      published: Boolean(rows[0].published),
-      createdAt: new Date(rows[0].createdAt),
-      updatedAt: new Date(rows[0].updatedAt),
+      id: row.id,
+      title: row.title,
+      slug: row.slug,
+      content: row.content,
+      imageUrl: row.image_url,
+      category: row.category,
+      published: Boolean(row.published),
+      authorId: row.author_id,
+      ctaLink: row.cta_link,
+      productId: row.product_id,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
     };
 
     return NextResponse.json(post);
@@ -47,21 +56,34 @@ export async function PUT(
     const validatedData = PostSchema.partial().parse(body);
     const now = new Date();
     
-    const updateData: any = { ...validatedData, updatedAt: now };
-    if (updateData.published !== undefined) {
-      updateData.published = updateData.published ? 1 : 0;
-    }
+    // Map camelCase to snake_case for DB
+    const dbData: any = {};
+    if (validatedData.title !== undefined) dbData.title = validatedData.title;
+    if (validatedData.slug !== undefined) dbData.slug = validatedData.slug;
+    if (validatedData.content !== undefined) dbData.content = validatedData.content;
+    if (validatedData.imageUrl !== undefined) dbData.image_url = validatedData.imageUrl;
+    if (validatedData.category !== undefined) dbData.category = validatedData.category;
+    if (validatedData.published !== undefined) dbData.published = validatedData.published;
+    if (validatedData.authorId !== undefined) dbData.author_id = validatedData.authorId;
+    if (validatedData.ctaLink !== undefined) dbData.cta_link = validatedData.ctaLink;
+    if (validatedData.productId !== undefined) dbData.product_id = validatedData.productId;
 
-    const keys = Object.keys(updateData);
-    const setClause = keys.map(key => `${key} = ?`).join(', ');
-    const values = [...Object.values(updateData), id];
+    dbData.updated_at = now;
 
-    const [result] = await pool.query<ResultSetHeader>(
-      `UPDATE posts SET ${setClause} WHERE id = ?`,
+    const keys = Object.keys(dbData);
+    const values = Object.values(dbData);
+    const setClause = keys.map((key, idx) => `${key} = $${idx + 1}`).join(', ');
+    
+    // Add ID as the last parameter
+    values.push(id);
+    const idParamIndex = values.length;
+
+    const { rowCount } = await pool.query(
+      `UPDATE posts SET ${setClause} WHERE id = $${idParamIndex}`,
       values
     );
 
-    if (result.affectedRows === 0) {
+    if (rowCount === 0) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
@@ -86,9 +108,9 @@ export async function DELETE(
 
   try {
     const { id } = await context.params;
-    const [result] = await pool.query<ResultSetHeader>('DELETE FROM posts WHERE id = ?', [id]);
+    const { rowCount } = await pool.query('DELETE FROM posts WHERE id = $1', [id]);
     
-    if (result.affectedRows === 0) {
+    if (rowCount === 0) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 

@@ -6,7 +6,7 @@ import PostCard from '@/components/PostCard';
 import LatestPostsSidebar from '@/components/LatestPostsSidebar';
 import NewsletterForm from '@/components/NewsletterForm';
 import pool from '@/lib/db';
-import { RowDataPacket } from 'mysql2';
+
 import { Post } from '@/core/domain/entities';
 import { SidebarSkeleton, PostCardSkeleton } from '@/components/Skeleton';
 import { BookOpen } from 'lucide-react';
@@ -15,15 +15,21 @@ export const dynamic = 'force-dynamic';
 
 async function getCategoryPosts(category: string): Promise<Post[]> {
   try {
-    const [rows] = await pool.query<RowDataPacket[]>(
-      'SELECT * FROM posts WHERE LOWER(category) = LOWER(?) AND published = 1 ORDER BY createdAt DESC',
+    const { rows } = await pool.query(
+      'SELECT * FROM posts WHERE LOWER(category) = LOWER($1) AND published = true ORDER BY created_at DESC',
       [category]
     );
-    return rows.map(row => ({
-      ...row,
+    return rows.map((row: any) => ({
+      id: row.id,
+      title: row.title,
+      slug: row.slug,
+      content: row.content,
+      imageUrl: row.image_url,
+      category: row.category,
       published: Boolean(row.published),
-      createdAt: new Date(row.createdAt),
-      updatedAt: new Date(row.updatedAt),
+      authorId: row.author_id,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
     })) as Post[];
   } catch (error) {
     console.error('Error fetching category posts:', error);

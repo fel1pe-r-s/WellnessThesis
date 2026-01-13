@@ -2,17 +2,24 @@ import Link from 'next/link';
 import { Clock, BookOpen } from 'lucide-react';
 import { Post } from '@/core/domain/entities';
 import pool from '@/lib/db';
-import { RowDataPacket } from 'mysql2';
+
 
 export default async function LatestPostsSidebar() {
   let posts: Post[] = [];
   try {
-    const [rows] = await pool.query<RowDataPacket[]>(
-      'SELECT id, title, slug, imageUrl, createdAt FROM posts WHERE published = 1 ORDER BY createdAt DESC LIMIT 5'
+    const { rows } = await pool.query(
+      'SELECT id, title, slug, image_url, created_at FROM posts WHERE published = true ORDER BY created_at DESC LIMIT 5'
     );
-    posts = rows.map(row => ({
-      ...row,
-      createdAt: new Date(row.createdAt),
+    posts = rows.map((row: any) => ({
+      id: row.id,
+      title: row.title,
+      slug: row.slug,
+      content: '', // Not selecting content for sidebar
+      imageUrl: row.image_url,
+      category: '',
+      published: true,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.created_at), // Fallback
     })) as Post[];
   } catch (error) {
     console.error('Error fetching sidebar posts:', error);

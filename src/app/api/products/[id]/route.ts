@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { verifyJwt } from '@/lib/jwt';
 import pool from '@/lib/db';
 import { ProductSchema } from '@/lib/schemas';
-import { RowDataPacket, ResultSetHeader } from 'mysql2';
+
 
 export async function GET(
   request: Request,
@@ -10,17 +10,24 @@ export async function GET(
 ) {
   try {
     const { id } = await context.params;
-    const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM products WHERE id = ?', [id]);
+    const { rows } = await pool.query('SELECT * FROM products WHERE id = $1', [id]);
     
     if (rows.length === 0) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
+    const row = rows[0];
     const product = {
-      ...rows[0],
-      isFeatured: Boolean(rows[0].isFeatured),
-      createdAt: new Date(rows[0].createdAt),
-      updatedAt: new Date(rows[0].updatedAt),
+      id: row.id,
+      name: row.name,
+      description: row.description,
+      imageUrl: row.image_url,
+      secondaryImageUrl: row.secondary_image_url,
+      affiliateLink: row.affiliate_link,
+      category: row.category,
+      isFeatured: Boolean(row.is_featured),
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
     };
 
     return NextResponse.json(product);
@@ -46,21 +53,40 @@ export async function PUT(
     const validatedData = ProductSchema.partial().parse(body);
     const now = new Date();
     
-    const updateData: any = { ...validatedData, updatedAt: now };
-    if (updateData.isFeatured !== undefined) {
-      updateData.isFeatured = updateData.isFeatured ? 1 : 0;
-    }
+    const columnMapping: Record<string, string> = {
+      name: 'name',
+      description: 'description',
+      imageUrl: 'image_url',
+      secondaryImageUrl: 'secondary_image_url',
+      affiliateLink: 'affiliate_link',
+      category: 'category',
+      isFeatured: 'is_featured',
+      updatedAt: 'updated_at' 
+    };
 
-    const keys = Object.keys(updateData);
-    const setClause = keys.map(key => `${key} = ?`).join(', ');
-    const values = [...Object.values(updateData), id];
+    const updateValues: any[] = [];
+    const setClauses: string[] = [];
+    
+    Object.entries(validatedData).forEach(([key, value]) => {
+      const colName = columnMapping[key];
+      if (colName && value !== undefined) {
+          setClauses.push(`${colName} = $${setClauses.length + 1}`);
+          updateValues.push(value);
+      }
+    });
 
-    const [result] = await pool.query<ResultSetHeader>(
-      `UPDATE products SET ${setClause} WHERE id = ?`,
-      values
-    );
+    // Always update updatedAt
+    setClauses.push(`updated_at = $${setClauses.length + 1}`);
+    updateValues.push(now);
 
-    if (result.affectedRows === 0) {
+    // Add ID for WHERE clause
+    updateValues.push(id);
+    
+    const query = `UPDATE products SET ${setClauses.join(', ')} WHERE id = $${updateValues.length}`;
+
+    const { rowCount } = await pool.query(query, updateValues);
+
+    if (rowCount === 0) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
@@ -85,9 +111,9 @@ export async function DELETE(
 
   try {
     const { id } = await context.params;
-    const [result] = await pool.query<ResultSetHeader>('DELETE FROM products WHERE id = ?', [id]);
+    const { rowCount } = await pool.query('DELETE FROM products WHERE id = $1', [id]);
     
-    if (result.affectedRows === 0) {
+    if (rowCount === 0) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 

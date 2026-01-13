@@ -2,16 +2,24 @@ import { NextResponse } from 'next/server';
 import { verifyJwt } from '@/lib/jwt';
 import pool from '@/lib/db';
 import { PostSchema } from '@/lib/schemas';
-import { RowDataPacket, ResultSetHeader } from 'mysql2';
+
 
 export async function GET() {
   try {
-    const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM posts ORDER BY createdAt DESC');
-    const posts = rows.map(row => ({
-      ...row,
+    const { rows } = await pool.query('SELECT * FROM posts ORDER BY created_at DESC');
+    const posts = rows.map((row: any) => ({
+      id: row.id,
+      title: row.title,
+      slug: row.slug,
+      content: row.content,
+      imageUrl: row.image_url,
+      category: row.category,
       published: Boolean(row.published),
-      createdAt: new Date(row.createdAt),
-      updatedAt: new Date(row.updatedAt),
+      authorId: row.author_id,
+      ctaLink: row.cta_link,
+      productId: row.product_id,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
     }));
     return NextResponse.json(posts);
   } catch (error) {
@@ -30,27 +38,51 @@ export async function POST(request: Request) {
     const body = await request.json();
     const validatedData = PostSchema.parse(body);
 
-    const id = validatedData.id || Math.random().toString(36).substring(7);
+    // Postgres generates UUIDs usually, but we might want to supply it if schema allows.
+    // Init script set default gen_random_uuid().
+    // If we don't supply ID, it is generated.
+    // If validatedData has ID, use it. If not, don't include in INSERT (let default work)
+    // Or simpler: Let DB generate it unless strictly required.
+    // However, the original code generated ID manually.
+    // Let's rely on DB generation for ID if not provided.
+    
     const now = new Date();
     
-    const postData = {
-      ...validatedData,
-      id,
-      published: validatedData.published ? 1 : 0,
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    const keys = Object.keys(postData);
-    const values = Object.values(postData);
-    const placeholders = keys.map(() => '?').join(', ');
-
-    await pool.query<ResultSetHeader>(
-      `INSERT INTO posts (${keys.join(', ')}) VALUES (${placeholders})`,
-      values
+    const { rows } = await pool.query(
+      `INSERT INTO posts (title, slug, content, image_url, category, published, author_id, cta_link, product_id, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING *`,
+      [
+        validatedData.title,
+        validatedData.slug,
+        validatedData.content,
+        validatedData.imageUrl || null,
+        validatedData.category,
+        validatedData.published || false,
+        validatedData.authorId || null,
+        validatedData.ctaLink || null,
+        validatedData.productId || null,
+        now
+      ]
     );
 
-    return NextResponse.json({ ...postData, published: Boolean(postData.published) }, { status: 201 });
+    const row = rows[0];
+    const newPost = {
+        id: row.id,
+        title: row.title,
+        slug: row.slug,
+        content: row.content,
+        imageUrl: row.image_url,
+        category: row.category,
+        published: Boolean(row.published),
+        authorId: row.author_id,
+        ctaLink: row.cta_link,
+        productId: row.product_id,
+        createdAt: new Date(row.created_at),
+        updatedAt: new Date(row.updated_at),
+    };
+
+    return NextResponse.json(newPost, { status: 201 });
   } catch (error: any) {
     if (error.name === 'ZodError') {
       return NextResponse.json({ error: 'Validation Error', details: error.errors }, { status: 400 });

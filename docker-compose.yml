@@ -1,17 +1,17 @@
 services:
   db:
-    image: mysql:8.0
+  # Using Postgres 15 to match Supabase defaults closely or recent standard
+    image: postgres:15-alpine
     container_name: wellnessthesis-db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: wellness_thesis
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: wellness_thesis
     ports:
-      - "3306:3306"
+      - "5433:5432"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
 
 volumes:
-  mysql_data:
+  postgres_data:

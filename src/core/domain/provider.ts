@@ -4,18 +4,10 @@ import {
   InMemorySubscriberRepository, 
   InMemoryUserRepository 
 } from '../../infrastructure/repositories/in-memory';
-import { 
-  MySQLPostRepository 
-} from '../../infrastructure/repositories/mysql/MySQLPostRepository';
-import { 
-  MySQLProductRepository 
-} from '../../infrastructure/repositories/mysql/MySQLProductRepository';
-import { 
-  MySQLSubscriberRepository 
-} from '../../infrastructure/repositories/mysql/MySQLSubscriberRepository';
-import { 
-  MySQLUserRepository 
-} from '../../infrastructure/repositories/mysql/MySQLUserRepository';
+import { PostgresUserRepository } from '../../infrastructure/repositories/postgres/PostgresUserRepository';
+import { PostgresPostRepository } from '../../infrastructure/repositories/postgres/PostgresPostRepository';
+import { PostgresProductRepository } from '../../infrastructure/repositories/postgres/PostgresProductRepository';
+import { PostgresSubscriberRepository } from '../../infrastructure/repositories/postgres/PostgresSubscriberRepository';
 import { 
   IPostRepository, 
   IProductRepository, 
@@ -32,13 +24,15 @@ class RepositoryProvider {
   public subscriberRepository: ISubscriberRepository;
 
   private constructor() {
-    const useMySQL = Boolean(process.env.DB_HOST);
+    // We default to Postgres now, fallback to InMemory if no connection string (usually)
+    // But for simplicity, let's assume if DATABASE_URL is present, use Postgres.
+    const usePostgres = Boolean(process.env.DATABASE_URL);
 
-    if (useMySQL) {
-      this.userRepository = new MySQLUserRepository();
-      this.postRepository = new MySQLPostRepository();
-      this.productRepository = new MySQLProductRepository();
-      this.subscriberRepository = new MySQLSubscriberRepository();
+    if (usePostgres) {
+      this.userRepository = new PostgresUserRepository();
+      this.postRepository = new PostgresPostRepository();
+      this.productRepository = new PostgresProductRepository();
+      this.subscriberRepository = new PostgresSubscriberRepository();
     } else {
       this.userRepository = new InMemoryUserRepository();
       this.postRepository = new InMemoryPostRepository();

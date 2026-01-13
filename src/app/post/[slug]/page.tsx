@@ -7,7 +7,7 @@ import ProductCarousel from '@/components/ProductCarousel';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import pool from '@/lib/db';
-import { RowDataPacket } from 'mysql2';
+
 import { Post, Product } from '@/core/domain/entities';
 import { BookOpen, Clock } from 'lucide-react';
 import { SidebarSkeleton, PostCardSkeleton } from '@/components/Skeleton';
@@ -16,8 +16,16 @@ export const dynamic = 'force-dynamic';
 
 async function getPostBySlug(slug: string): Promise<(Post & { product?: Product }) | null> {
   try {
-    const [rows] = await pool.query<RowDataPacket[]>(
-      'SELECT p.*, pr.name as productName, pr.description as productDescription, pr.imageUrl as productImageUrl, pr.affiliateLink as productAffiliateLink FROM posts p LEFT JOIN products pr ON p.productId = pr.id WHERE p.slug = ? AND p.published = 1',
+    const { rows } = await pool.query(
+      `SELECT p.*, 
+        pr.name as "productName", 
+        pr.description as "productDescription", 
+        pr.image_url as "productImageUrl", 
+        pr.secondary_image_url as "productSecondaryImageUrl",
+        pr.affiliate_link as "productAffiliateLink" 
+      FROM posts p 
+      LEFT JOIN products pr ON p.product_id = pr.id 
+      WHERE p.slug = $1 AND p.published = true`,
       [slug]
     );
 
@@ -29,22 +37,23 @@ async function getPostBySlug(slug: string): Promise<(Post & { product?: Product 
       title: row.title,
       slug: row.slug,
       content: row.content,
-      imageUrl: row.imageUrl,
+      imageUrl: row.image_url,
       category: row.category,
       published: Boolean(row.published),
-      authorId: row.authorId,
-      createdAt: new Date(row.createdAt),
-      updatedAt: new Date(row.updatedAt),
-      ctaLink: row.ctaLink,
-      productId: row.productId,
+      authorId: row.author_id,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
+      ctaLink: row.cta_link,
+      productId: row.product_id,
     };
 
-    if (row.productId) {
+    if (row.product_id) {
       post.product = {
-        id: row.productId,
+        id: row.product_id,
         name: row.productName,
         description: row.productDescription,
         imageUrl: row.productImageUrl,
+        secondaryImageUrl: row.productSecondaryImageUrl,
         affiliateLink: row.productAffiliateLink,
         category: row.category, 
         isFeatured: false, 
@@ -61,15 +70,21 @@ async function getPostBySlug(slug: string): Promise<(Post & { product?: Product 
 }
 
 async function RelatedPostsSection({ category, excludeId }: { category: string, excludeId: string }) {
-  const [rows] = await pool.query<RowDataPacket[]>(
-    'SELECT * FROM posts WHERE category = ? AND id != ? AND published = 1 LIMIT 3',
+  const { rows } = await pool.query(
+    'SELECT * FROM posts WHERE category = $1 AND id != $2 AND published = true LIMIT 3',
     [category, excludeId]
   );
-  const relatedPosts = rows.map(row => ({
-    ...row,
+  const relatedPosts = rows.map((row: any) => ({
+    id: row.id,
+    title: row.title,
+    slug: row.slug,
+    content: row.content,
+    imageUrl: row.image_url,
+    category: row.category,
     published: Boolean(row.published),
-    createdAt: new Date(row.createdAt),
-    updatedAt: new Date(row.updatedAt),
+    authorId: row.author_id,
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
   })) as Post[];
 
   if (relatedPosts.length === 0) return null;

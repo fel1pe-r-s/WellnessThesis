@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Star } from 'lucide-react';
 import pool from '@/lib/db';
-import { RowDataPacket } from 'mysql2';
+
 
 interface FeaturedProduct {
   id: string;
@@ -16,11 +16,19 @@ export default async function FeaturedProductSpotlight() {
   let product: FeaturedProduct | null = null;
 
   try {
-    const [rows] = await pool.query<RowDataPacket[]>(
-      'SELECT id, name, description, imageUrl, secondaryImageUrl, affiliateLink FROM products WHERE isFeatured = 1 LIMIT 1'
+    const { rows } = await pool.query(
+      'SELECT id, name, description, image_url, secondary_image_url, affiliate_link FROM products WHERE is_featured = true LIMIT 1'
     );
     if (rows.length > 0) {
-      product = rows[0] as FeaturedProduct;
+      const row = rows[0];
+      product = {
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        imageUrl: row.image_url,
+        secondaryImageUrl: row.secondary_image_url,
+        affiliateLink: row.affiliate_link,
+      };
     }
   } catch (error) {
     console.error('Error fetching featured product:', error);

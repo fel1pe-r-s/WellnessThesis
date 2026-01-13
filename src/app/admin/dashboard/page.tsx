@@ -12,46 +12,70 @@ import {
   Star
 } from 'lucide-react';
 import pool from '@/lib/db';
-import { RowDataPacket } from 'mysql2';
+
 import { Post, Product } from '@/core/domain/entities';
 
 async function getStats() {
   // Real stats from DB
-  const [postResult]: any = await pool.query('SELECT COUNT(*) as count FROM posts');
-  const postCount = postResult[0].count;
+  const { rows: postRows } = await pool.query('SELECT COUNT(*) as count FROM posts');
+  const postCount = parseInt(postRows[0].count);
 
-  const [productResult]: any = await pool.query('SELECT COUNT(*) as count FROM products');
-  const productCount = productResult[0].count;
+  const { rows: productRows } = await pool.query('SELECT COUNT(*) as count FROM products');
+  const productCount = parseInt(productRows[0].count);
 
-  const [subscriberResult]: any = await pool.query('SELECT COUNT(*) as count FROM subscribers');
-  const subscriberCount = subscriberResult[0].count;
+  const { rows: subscriberRows } = await pool.query('SELECT COUNT(*) as count FROM subscribers');
+  const subscriberCount = parseInt(subscriberRows[0].count);
   
   // Real Recent Posts
-  const [recentPostsRows] = await pool.query<RowDataPacket[]>(
-    'SELECT * FROM posts ORDER BY createdAt DESC LIMIT 5'
+  const { rows: recentPostsRows } = await pool.query(
+    'SELECT * FROM posts ORDER BY created_at DESC LIMIT 5'
   );
   
-  const recentPosts = recentPostsRows.map(row => ({
-    ...row,
-    createdAt: new Date(row.createdAt),
+  const recentPosts = recentPostsRows.map((row: any) => ({
+    id: row.id,
+    title: row.title,
+    slug: row.slug,
+    content: row.content,
+    imageUrl: row.image_url,
+    category: row.category,
+    published: row.published,
+    authorId: row.author_id,
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
   })) as Post[];
 
   // Real Top Categories
-  const [categoryRows] = await pool.query<RowDataPacket[]>(
+  const { rows: categoryRows } = await pool.query(
     'SELECT category, COUNT(*) as count FROM posts GROUP BY category ORDER BY count DESC LIMIT 3'
   );
 
-  const topCategories = categoryRows.map(row => ({
+  const topCategories = categoryRows.map((row: any) => ({
     label: row.category,
-    count: row.count,
-    progress: (postCount > 0 ? Math.min((row.count / postCount) * 100, 100) : 0) + '%'
+    count: parseInt(row.count),
+    progress: (postCount > 0 ? Math.min((parseInt(row.count) / postCount) * 100, 100) : 0) + '%'
   }));
 
   // Featured Product
-  const [featuredRows] = await pool.query<RowDataPacket[]>(
-    'SELECT * FROM products WHERE isFeatured = 1 LIMIT 1'
+  const { rows: featuredRows } = await pool.query(
+    'SELECT * FROM products WHERE is_featured = true LIMIT 1'
   );
-  const featuredProduct = featuredRows.length > 0 ? (featuredRows[0] as Product) : null;
+  
+  let featuredProduct: Product | null = null;
+  if (featuredRows.length > 0) {
+      const row = featuredRows[0];
+      featuredProduct = {
+          id: row.id,
+          name: row.name,
+          description: row.description,
+          imageUrl: row.image_url,
+          secondaryImageUrl: row.secondary_image_url,
+          affiliateLink: row.affiliate_link,
+          category: row.category,
+          isFeatured: row.is_featured,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at
+      };
+  }
   
   return {
     totalPosts: postCount,
