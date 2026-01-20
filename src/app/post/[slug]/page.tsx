@@ -14,7 +14,7 @@ import { SidebarSkeleton, PostCardSkeleton } from '@/components/Skeleton';
 
 export const dynamic = 'force-dynamic';
 
-async function getPostBySlug(slug: string): Promise<(Post & { product?: Product }) | null> {
+async function getPostBySlug(slug: string, isPreview: boolean = false): Promise<(Post & { product?: Product }) | null> {
   try {
     const { rows } = await pool.query(
       `SELECT p.*, 
@@ -25,7 +25,7 @@ async function getPostBySlug(slug: string): Promise<(Post & { product?: Product 
         pr.affiliate_link as "productAffiliateLink" 
       FROM posts p 
       LEFT JOIN products pr ON p.product_id = pr.id 
-      WHERE p.slug = $1 AND p.published = true`,
+      WHERE p.slug = $1${isPreview ? '' : ' AND p.published = true'}`,
       [slug]
     );
 
@@ -40,6 +40,7 @@ async function getPostBySlug(slug: string): Promise<(Post & { product?: Product 
       imageUrl: row.image_url,
       category: row.category,
       published: Boolean(row.published),
+      isFeatured: Boolean(row.is_featured),
       authorId: row.author_id,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
@@ -121,9 +122,16 @@ async function RelatedPostsSection({ category, excludeId }: { category: string, 
   );
 }
 
-export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const post = await getPostBySlug(slug);
+export default async function PostPage({ 
+  params,
+  searchParams 
+}: { 
+  params: Promise<{ slug: string }>,
+  searchParams: Promise<{ preview?: string }>
+}) {
+  const [{ slug }, { preview }] = await Promise.all([params, searchParams]);
+  const isPreview = preview === 'true';
+  const post = await getPostBySlug(slug, isPreview);
 
   if (!post) {
     notFound();

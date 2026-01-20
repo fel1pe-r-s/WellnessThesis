@@ -157,6 +157,16 @@ export default function AdminEditor() {
             </div>
           )}
           <Button 
+            variant="ghost" 
+            className="text-slate-400 hover:text-lime-700 hover:bg-lime-700/5 h-11 px-4 font-bold rounded-xl gap-2"
+            onClick={() => {
+              const slug = post.slug || post.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+              window.open(`/post/${slug}?preview=true`, '_blank');
+            }}
+          >
+            <Eye size={18} /> Preview
+          </Button>
+          <Button 
             variant="outline" 
             className="border-slate-200 bg-transparent text-slate-500 hover:bg-slate-50 px-6 h-11 font-bold rounded-xl gap-2"
             disabled={saving}

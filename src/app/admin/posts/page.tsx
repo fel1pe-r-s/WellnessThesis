@@ -156,10 +156,17 @@ export default function PostsPage() {
                     </TableCell>
                     <TableCell className="px-6 py-4">
                        <div className="flex items-center justify-center">
-                          <span className="flex items-center gap-2 text-[10px] font-black uppercase text-emerald-600">
-                            <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-                            Live
-                          </span>
+                          {post.published ? (
+                            <span className="flex items-center gap-2 text-[10px] font-black uppercase text-emerald-600">
+                              <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+                              Live
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-2 text-[10px] font-black uppercase text-amber-500">
+                              <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
+                              Draft
+                            </span>
+                          )}
                        </div>
                     </TableCell>
                     <TableCell className="px-6 py-4 text-slate-500 text-xs font-bold">
@@ -180,7 +187,7 @@ export default function PostsPage() {
                           >
                              <Trash2 size={16} />
                           </Button>
-                          <Link href={`/post/${post.slug}`} target="_blank">
+                          <Link href={`/post/${post.slug}?preview=true`} target="_blank">
                             <Button size="icon" variant="ghost" className="h-8 w-8 text-slate-400 hover:text-lime-700 hover:bg-lime-700/10 rounded-lg transition-all">
                                <Eye size={16} />
                             </Button>
