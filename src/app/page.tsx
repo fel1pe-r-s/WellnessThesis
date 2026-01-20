@@ -12,19 +12,21 @@ import NewsletterForm from '@/components/NewsletterForm';
 export const dynamic = 'force-dynamic';
 
 async function getBlogData() {
-  // Fetch latest posts
   const { rows: postRows } = await query(
-    'SELECT * FROM posts WHERE published = true ORDER BY created_at DESC LIMIT 10'
+    'SELECT * FROM posts WHERE published = true ORDER BY is_featured DESC, created_at DESC LIMIT 10'
   );
+
   
   const posts = postRows.map((row: any) => ({
     ...row,
     imageUrl: row.image_url,
     authorId: row.author_id,
     productId: row.product_id,
+    isFeatured: row.is_featured,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   })) as Post[];
+
 
   // Fetch featured products for carousel
   const { rows: productRows } = await query(
@@ -65,12 +67,15 @@ export default async function BlogPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
             {/* Posts Grid */}
             <div className="lg:col-span-2 space-y-12">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-6 mb-12">
-                <h2 className="text-3xl font-serif font-black text-slate-900 tracking-tight">Recent Insights</h2>
-                <div className="hidden md:flex gap-4">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-lime-700 bg-lime-50 px-3 py-1 rounded-full border border-lime-100 italic">Latest Discoveries</span>
+              {regularPosts.length > 0 && (
+                <div className="flex items-center justify-between border-b border-slate-200 pb-6 mb-12">
+                  <h2 className="text-3xl font-serif font-black text-slate-900 tracking-tight">Recent Insights</h2>
+                  <div className="hidden md:flex gap-4">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-lime-700 bg-lime-50 px-3 py-1 rounded-full border border-lime-100 italic">Latest Discoveries</span>
+                  </div>
                 </div>
-              </div>
+              )}
+
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {regularPosts.map((post) => (

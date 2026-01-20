@@ -8,7 +8,7 @@ export default async function LatestPostsSidebar() {
   let posts: Post[] = [];
   try {
     const { rows } = await query(
-      'SELECT id, title, slug, image_url, created_at FROM posts WHERE published = true ORDER BY created_at DESC LIMIT 5'
+      'SELECT id, title, slug, image_url, created_at FROM posts WHERE published = true ORDER BY is_featured DESC, created_at DESC LIMIT 5'
     );
     posts = rows.map((row: any) => ({
       id: row.id,
