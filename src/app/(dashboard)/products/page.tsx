@@ -47,14 +47,16 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<any>({
+    id: undefined,
     name: '',
     category: '',
     description: '',
     imageUrl: '',
     affiliateLink: ''
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -73,21 +75,56 @@ export default function ProductsPage() {
     fetchProducts();
   }, []);
 
-  const handleCreate = async () => {
+  const handleSave = async () => {
     try {
-      const res = await fetch('/api/products', {
-        method: 'POST',
+      const isEditing = !!currentProduct.id;
+      const url = isEditing ? `/api/products/${currentProduct.id}` : '/api/products';
+      const method = isEditing ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(currentProduct)
       });
-      if (res.ok) {
-        setIsCreateDialogOpen(false);
-        fetchProducts();
-        setCurrentProduct({ name: '', category: '', description: '', imageUrl: '', affiliateLink: '' });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (data.details) {
+            // Transform Zod errors array into object map
+            const newErrors: Record<string, string> = {};
+            data.details.forEach((err: any) => {
+                const path = err.path[0];
+                newErrors[path] = err.message;
+            });
+            setErrors(newErrors);
+            return; // Stop execution
+        }
+        throw new Error(data.error || 'Failed to save');
       }
+
+      // Success path
+      setIsDialogOpen(false);
+      fetchProducts();
+      setCurrentProduct({ id: undefined, name: '', category: '', description: '', imageUrl: '', affiliateLink: '' });
+      setErrors({}); // Clear errors
+      
     } catch (error) {
-      console.error('Failed to create product:', error);
+      console.error('Failed to save product:', error);
+      // Optional: Add a general error toast here if needed
     }
+  };
+
+  const handleEdit = (product: any) => {
+    setCurrentProduct({
+        id: product.id,
+        name: product.name,
+        category: product.category,
+        description: product.description || '',
+        imageUrl: product.imageUrl || '',
+        affiliateLink: product.affiliateLink || ''
+    });
+    setIsDialogOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -123,7 +160,12 @@ export default function ProductsPage() {
           <p className="text-slate-500 mt-1 font-medium italic">Manage your monetization engine.</p>
         </div>
         
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+           setIsDialogOpen(open);
+           if (!open) {
+             setCurrentProduct({ id: undefined, name: '', category: '', description: '', imageUrl: '', affiliateLink: '' });
+           }
+        }}>
           <DialogTrigger asChild>
             <Button className="bg-lime-700 text-white font-bold hover:bg-lime-800 shadow-lg gap-2 h-12 px-6 rounded-xl">
               <Plus size={20} strokeWidth={3} />
@@ -132,9 +174,11 @@ export default function ProductsPage() {
           </DialogTrigger>
           <DialogContent className="bg-white border-slate-200 text-slate-900 sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-black uppercase tracking-tight">Create Product</DialogTitle>
+              <DialogTitle className="text-2xl font-black uppercase tracking-tight">
+                {currentProduct.id ? 'Edit Product' : 'Create Product'}
+              </DialogTitle>
               <DialogDescription className="text-slate-500">
-                Add a new affiliate product to your library.
+                {currentProduct.id ? 'Modify existing affiliate details.' : 'Add a new affiliate product to your library.'}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-6 py-4">
@@ -144,8 +188,9 @@ export default function ProductsPage() {
                   id="name" 
                   value={currentProduct.name}
                   onChange={(e) => setCurrentProduct({...currentProduct, name: e.target.value})}
-                  className="bg-slate-50 border-slate-200 focus:border-lime-700 text-slate-900" 
+                  className={`bg-slate-50 border-slate-200 focus:border-lime-700 text-slate-900 ${errors.name ? 'border-red-500' : ''}`}
                 />
+                {errors.name && <span className="text-red-500 text-[10px] font-bold">{errors.name}</span>}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
@@ -154,8 +199,9 @@ export default function ProductsPage() {
                     id="category" 
                     value={currentProduct.category}
                     onChange={(e) => setCurrentProduct({...currentProduct, category: e.target.value})}
-                    className="bg-slate-50 border-slate-200 focus:border-lime-700 text-slate-900" 
+                    className={`bg-slate-50 border-slate-200 focus:border-lime-700 text-slate-900 ${errors.category ? 'border-red-500' : ''}`}
                   />
+                  {errors.category && <span className="text-red-500 text-[10px] font-bold">{errors.category}</span>}
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="image" className="text-slate-500 font-bold text-[10px] uppercase">Image URL</Label>
@@ -163,8 +209,9 @@ export default function ProductsPage() {
                     id="image" 
                     value={currentProduct.imageUrl}
                     onChange={(e) => setCurrentProduct({...currentProduct, imageUrl: e.target.value})}
-                    className="bg-slate-50 border-slate-200 focus:border-lime-700 text-slate-900" 
+                    className={`bg-slate-50 border-slate-200 focus:border-lime-700 text-slate-900 ${errors.imageUrl ? 'border-red-500' : ''}`}
                   />
+                  {errors.imageUrl && <span className="text-red-500 text-[10px] font-bold">{errors.imageUrl}</span>}
                 </div>
               </div>
               <div className="grid gap-2">
@@ -173,8 +220,9 @@ export default function ProductsPage() {
                   id="link" 
                   value={currentProduct.affiliateLink}
                   onChange={(e) => setCurrentProduct({...currentProduct, affiliateLink: e.target.value})}
-                  className="bg-slate-50 border-slate-200 focus:border-lime-700 text-slate-900" 
+                  className={`bg-slate-50 border-slate-200 focus:border-lime-700 text-slate-900 ${errors.affiliateLink ? 'border-red-500' : ''}`}
                 />
+                {errors.affiliateLink && <span className="text-red-500 text-[10px] font-bold">{errors.affiliateLink}</span>}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="desc" className="text-slate-500 font-bold text-[10px] uppercase">Description</Label>
@@ -187,8 +235,10 @@ export default function ProductsPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="ghost" onClick={() => setIsCreateDialogOpen(false)} className="text-slate-500 hover:text-slate-900 hover:bg-slate-100 font-bold">Cancel</Button>
-              <Button onClick={handleCreate} className="bg-lime-700 text-white font-bold hover:bg-lime-800">Save Product</Button>
+              <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="text-slate-500 hover:text-slate-900 hover:bg-slate-100 font-bold">Cancel</Button>
+              <Button onClick={handleSave} className="bg-lime-700 text-white font-bold hover:bg-lime-800">
+                {currentProduct.id ? 'Save Changes' : 'Create Product'}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -289,7 +339,12 @@ export default function ProductsPage() {
                            >
                               <Star size={16} className={product.isFeatured ? "fill-current" : ""} />
                            </Button>
-                           <Button size="icon" variant="ghost" className="h-8 w-8 text-slate-400 hover:text-lime-700 hover:bg-lime-700/10 rounded-lg">
+                           <Button 
+                             size="icon" 
+                             variant="ghost" 
+                             className="h-8 w-8 text-slate-400 hover:text-lime-700 hover:bg-lime-700/10 rounded-lg"
+                             onClick={() => handleEdit(product)}
+                           >
                               <Edit2 size={16} />
                            </Button>
                           <Button 

@@ -13,7 +13,8 @@ import {
   ShoppingBag,
   Eye,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  XCircle
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,6 +49,7 @@ export default function AdminEditor() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<any>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchProducts();
@@ -79,14 +81,14 @@ export default function AdminEditor() {
     }
   };
 
-  const handleSave = async (published: boolean = false) => {
+  const handleSaveAction = async (published: boolean = false, isPreview: boolean = false) => {
     setSaving(true);
     setMessage(null);
+    setErrors({});
     try {
       const method = id ? 'PATCH' : 'POST';
       const url = id ? `/api/posts/${id}` : '/api/posts';
       
-      // Auto-generate slug if empty
       const postData = { 
         ...post, 
         published,
@@ -99,21 +101,52 @@ export default function AdminEditor() {
         body: JSON.stringify(postData)
       });
 
-      if (res.ok) {
-        setMessage({ type: 'success', text: published ? 'Post published successfully!' : 'Draft saved successfully!' });
-        if (!id) {
-          const newPost = await res.json();
-          router.push(`/editor/${newPost.id}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (data.details) {
+            const newErrors: Record<string, string> = {};
+            data.details.forEach((err: any) => {
+                const path = err.path[0];
+                newErrors[path] = err.message;
+            });
+            setErrors(newErrors);
+            setMessage({ type: 'error', text: 'Please fix the validation errors.' });
+        } else {
+            setMessage({ type: 'error', text: data.error || 'Error saving post' });
         }
-      } else {
-        setMessage({ type: 'error', text: 'Error saving post' });
+        return null; // Return null on error
       }
+
+      // Success
+      if (!isPreview) {
+           setMessage({ type: 'success', text: published ? 'Post published successfully!' : 'Draft saved successfully!' });
+      }
+      
+      if (!id) {
+         if (!isPreview) router.push(`/editor/${data.id}`);
+      }
+      return data; // Return saved post data
+
     } catch (error) {
       setMessage({ type: 'error', text: 'Network error occurred' });
+      return null;
     } finally {
+      // If previewing, we need to keep the UI responsive, so stop saving spinner.
       setSaving(false);
+    } 
+  };
+
+  const handlePreview = async () => {
+    // Save as draft (published=false) but mark as preview action
+    const savedPost = await handleSaveAction(post.published, true);
+    if (savedPost) {
+        const slug = savedPost.slug;
+        window.open(`/post/${slug}?preview=true`, '_blank');
     }
   };
+
+  const handleSave = (published: boolean) => handleSaveAction(published, false);
 
   if (loading) return (
     <div className="h-screen flex items-center justify-center bg-white">
@@ -159,10 +192,7 @@ export default function AdminEditor() {
           <Button 
             variant="ghost" 
             className="text-slate-400 hover:text-lime-700 hover:bg-lime-700/5 h-11 px-4 font-bold rounded-xl gap-2"
-            onClick={() => {
-              const slug = post.slug || post.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-              window.open(`/post/${slug}?preview=true`, '_blank');
-            }}
+            onClick={handlePreview}
           >
             <Eye size={18} /> Preview
           </Button>
@@ -195,8 +225,13 @@ export default function AdminEditor() {
                   value={post.title}
                   onChange={(e) => setPost({...post, title: e.target.value})}
                   placeholder="The Science of Mitochondrial Recovery..."
-                  className="bg-transparent border-none text-4xl md:text-5xl font-black p-0 h-auto placeholder:text-slate-200 focus-visible:ring-0 focus-visible:ring-offset-0 text-slate-900"
+                  className={`bg-transparent border-none text-4xl md:text-5xl font-black p-0 h-auto placeholder:text-slate-200 focus-visible:ring-0 focus-visible:ring-offset-0 text-slate-900 ${errors.title ? 'placeholder:text-red-300' : ''}`}
                 />
+                {errors.title && (
+                    <div className="flex items-center gap-2 text-red-500 text-xs font-bold animate-pulse">
+                        <XCircle size={14} /> {errors.title}
+                    </div>
+                )}
               </div>
 
               <div className="space-y-4">
@@ -204,7 +239,7 @@ export default function AdminEditor() {
                 <Textarea 
                   value={post.content}
                   onChange={(e) => setPost({...post, content: e.target.value})}
-                  placeholder="Start your scientific exploration here..."
+                  placeholder={`<p>Start your scientific exploration here...</p>\n\n<h3>Key Insights</h3>\n<ul>\n  <li>Mitochondrial health is vital</li>\n  <li>Nutrition plays a key role</li>\n</ul>`}
                   className="min-h-[600px] bg-slate-50/50 border-slate-200 rounded-2xl p-8 text-lg leading-relaxed font-serif text-slate-900 focus:ring-lime-700/20 focus:border-lime-700/30 shadow-inner"
                 />
               </div>
@@ -229,8 +264,9 @@ export default function AdminEditor() {
                   value={post.slug}
                   onChange={(e) => setPost({...post, slug: e.target.value})}
                   placeholder="mitochondrial-recovery-guide"
-                  className="bg-slate-50 border-slate-200 rounded-xl text-xs font-bold text-lime-700 focus:ring-lime-700/30"
+                  className={`bg-slate-50 border-slate-200 rounded-xl text-xs font-bold text-lime-700 focus:ring-lime-700/30 ${errors.slug ? 'border-red-500 bg-red-50' : ''}`}
                 />
+                {errors.slug && <span className="text-red-500 text-[10px] font-bold">{errors.slug}</span>}
               </div>
 
               <div className="space-y-4">
@@ -241,8 +277,9 @@ export default function AdminEditor() {
                   value={post.imageUrl}
                   onChange={(e) => setPost({...post, imageUrl: e.target.value})}
                   placeholder="https://images.unsplash.com/..."
-                  className="bg-slate-50 border-slate-200 rounded-xl text-xs"
+                  className={`bg-slate-50 border-slate-200 rounded-xl text-xs ${errors.imageUrl ? 'border-red-500 bg-red-50' : ''}`}
                 />
+                {errors.imageUrl && <span className="text-red-500 text-[10px] font-bold">{errors.imageUrl}</span>}
                 {post.imageUrl && (
                   <div className="mt-2 aspect-video rounded-xl border border-slate-200 overflow-hidden shadow-inner">
                     <img src={post.imageUrl} alt="Preview" className="w-full h-full object-cover" />
@@ -258,7 +295,7 @@ export default function AdminEditor() {
                   value={post.category} 
                   onValueChange={(val) => setPost({...post, category: val})}
                 >
-                  <SelectTrigger className="bg-slate-50 border-slate-200 rounded-xl h-11">
+                  <SelectTrigger className={`bg-slate-50 border-slate-200 rounded-xl h-11 ${errors.category ? 'border-red-500 bg-red-50' : ''}`}>
                     <SelectValue placeholder="Select Category" />
                   </SelectTrigger>
                   <SelectContent className="bg-white border-slate-200 text-slate-900">
@@ -269,6 +306,7 @@ export default function AdminEditor() {
                     <SelectItem value="Longevity">Longevity</SelectItem>
                   </SelectContent>
                 </Select>
+                {errors.category && <span className="text-red-500 text-[10px] font-bold">{errors.category}</span>}
               </div>
               <div className="space-y-4 pt-4 border-t border-slate-100">
                 <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-200">
@@ -320,6 +358,49 @@ export default function AdminEditor() {
                     <Eye size={14} className="text-slate-400 group-hover/prod:text-lime-700 cursor-help" />
                  </div>
               )}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-slate-900 border-none rounded-3xl shadow-xl overflow-hidden text-white">
+            <div className="p-6 bg-white/5 border-b border-white/10">
+              <h3 className="text-sm font-black uppercase tracking-wider flex items-center gap-2">
+                <Type size={18} className="text-lime-400" /> Formatting Guide
+              </h3>
+            </div>
+            <CardContent className="p-6 space-y-4">
+              <div className="space-y-2">
+                <p className="text-[10px] font-black text-lime-400 uppercase tracking-widest">HTML Support</p>
+                <p className="text-xs text-slate-400 leading-relaxed italic">
+                  Markdown is not active yet. Use standard <strong className="text-white">HTML tags</strong> for formatting:
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2 text-[10px] font-bold">
+                <div className="p-2 bg-white/5 rounded-lg border border-white/5">
+                  <span className="text-lime-400">&lt;p&gt;</span> Paragraph
+                </div>
+                <div className="p-2 bg-white/5 rounded-lg border border-white/5">
+                  <span className="text-lime-400">&lt;h3&gt;</span> Heading
+                </div>
+                <div className="p-2 bg-white/5 rounded-lg border border-white/5">
+                  <span className="text-lime-400">&lt;ul&gt;</span> List Wrapper
+                </div>
+                <div className="p-2 bg-white/5 rounded-lg border border-white/5">
+                  <span className="text-lime-400">&lt;li&gt;</span> List Item
+                </div>
+                <div className="p-2 bg-white/5 rounded-lg border border-white/5">
+                  <span className="text-lime-400">&lt;strong&gt;</span> Bold
+                </div>
+                <div className="p-2 bg-white/5 rounded-lg border border-white/5">
+                  <span className="text-lime-400">&lt;em&gt;</span> Italic
+                </div>
+              </div>
+
+              <div className="p-4 bg-lime-400/10 rounded-2xl border border-lime-400/20">
+                <p className="text-[9px] text-lime-400 uppercase font-black leading-relaxed">
+                  Pro-tip: Use <strong>&lt;h3&gt;</strong> for the best visual hierarchy in our blog layout.
+                </p>
+              </div>
             </CardContent>
           </Card>
 

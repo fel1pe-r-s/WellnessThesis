@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { verifyJwt } from '@/lib/jwt';
-import pool from '@/lib/db';
+import { query } from '@/lib/db';
 import { ProductSchema } from '@/lib/schemas';
 
 
@@ -10,7 +10,7 @@ export async function GET(
 ) {
   try {
     const { id } = await context.params;
-    const { rows } = await pool.query('SELECT * FROM products WHERE id = $1', [id]);
+    const { rows } = await query('SELECT * FROM products WHERE id = $1', [id]);
     
     if (rows.length === 0) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
@@ -82,9 +82,9 @@ export async function PUT(
     // Add ID for WHERE clause
     updateValues.push(id);
     
-    const query = `UPDATE products SET ${setClauses.join(', ')} WHERE id = $${updateValues.length}`;
+    const queryText = `UPDATE products SET ${setClauses.join(', ')} WHERE id = $${updateValues.length} RETURNING id`;
 
-    const { rowCount } = await pool.query(query, updateValues);
+    const { rowCount } = await query(queryText, updateValues);
 
     if (rowCount === 0) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
@@ -111,7 +111,7 @@ export async function DELETE(
 
   try {
     const { id } = await context.params;
-    const { rowCount } = await pool.query('DELETE FROM products WHERE id = $1', [id]);
+    const { rowCount } = await query('DELETE FROM products WHERE id = $1 RETURNING id', [id]);
     
     if (rowCount === 0) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });

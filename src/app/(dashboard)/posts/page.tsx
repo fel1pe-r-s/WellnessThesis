@@ -143,10 +143,15 @@ export default function PostsPage() {
                       <div className="flex flex-col gap-1">
                         <span className="font-black text-slate-900 text-sm group-hover:text-lime-700 transition-colors line-clamp-1">{post.title}</span>
                         <div className="flex items-center gap-2">
-                           <Badge className="bg-lime-700/10 text-lime-700 border-none font-black text-[8px] uppercase tracking-wider px-1.5 py-0 rounded-sm">
-                             {post.category || 'Opinion'}
-                           </Badge>
-                           {post.productId && (
+                            <Badge className="bg-lime-700/10 text-lime-700 border-none font-black text-[8px] uppercase tracking-wider px-1.5 py-0 rounded-sm">
+                              {post.category || 'Opinion'}
+                            </Badge>
+                            {post.isFeatured && (
+                              <Badge className="bg-amber-400/10 text-amber-600 border-none font-black text-[8px] uppercase tracking-wider px-1.5 py-0 rounded-sm">
+                                Featured
+                              </Badge>
+                            )}
+                            {post.productId && (
                              <Badge className="bg-blue-400/10 text-blue-400 border-none font-black text-[8px] uppercase tracking-wider px-1.5 py-0 rounded-sm flex items-center gap-1">
                                <ShoppingBag size={8} /> Affiliate
                              </Badge>

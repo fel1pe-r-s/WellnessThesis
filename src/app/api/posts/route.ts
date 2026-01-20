@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { verifyJwt } from '@/lib/jwt';
-import pool from '@/lib/db';
+import { query } from '@/lib/db';
 import { PostSchema } from '@/lib/schemas';
 
 
 export async function GET() {
   try {
-    const { rows } = await pool.query('SELECT * FROM posts ORDER BY created_at DESC');
+    const { rows } = await query('SELECT * FROM posts ORDER BY created_at DESC');
     const posts = rows.map((row: any) => ({
       id: row.id,
       title: row.title,
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     
     const now = new Date();
     
-    const { rows } = await pool.query(
+    const { rows } = await query(
       `INSERT INTO posts (title, slug, content, image_url, category, published, is_featured, author_id, cta_link, product_id, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING *`,

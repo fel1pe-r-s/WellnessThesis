@@ -100,10 +100,10 @@ export default async function DashboardPage() {
           <p className="text-slate-500 font-medium">Monitoring the WellnessThesis ecosystem.</p>
         </div>
         <div className="flex gap-3">
-          <Link href="/posts/new" className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition-colors flex items-center gap-2">
+          <Link href="/editor" className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition-colors flex items-center gap-2">
             <FileText size={14} /> New Post
           </Link>
-          <Link href="/products/new" className="px-4 py-2 bg-white border border-slate-200 text-slate-900 text-xs font-bold rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-2">
+          <Link href="/products" className="px-4 py-2 bg-white border border-slate-200 text-slate-900 text-xs font-bold rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-2">
             <ShoppingBag size={14} /> Add Product
           </Link>
         </div>
@@ -176,7 +176,7 @@ export default async function DashboardPage() {
                         {new Date(post.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <Link href={`/posts/edit/${post.id}`} className="p-2 text-slate-400 hover:text-lime-700 transition-colors inline-block">
+                        <Link href={`/editor/${post.id}`} className="p-2 text-slate-400 hover:text-lime-700 transition-colors inline-block">
                           <Edit size={16} />
                         </Link>
                       </td>

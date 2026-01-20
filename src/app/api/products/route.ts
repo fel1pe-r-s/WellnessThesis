@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import { query } from '@/lib/db';
 import { ProductSchema } from '@/lib/schemas';
 
 import { verifyJwt } from '@/lib/jwt';
 
 export async function GET() {
   try {
-    const { rows } = await pool.query('SELECT * FROM products ORDER BY created_at DESC');
+    const { rows } = await query('SELECT * FROM products ORDER BY created_at DESC');
     const products = rows.map((row: any) => ({
       id: row.id,
       name: row.name,
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     const now = new Date();
     
     // Use explicit column list mapping
-    const { rows } = await pool.query(
+    const { rows } = await query(
       `INSERT INTO products (name, description, image_url, secondary_image_url, affiliate_link, category, is_featured, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`,
