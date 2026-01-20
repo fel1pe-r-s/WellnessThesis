@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 export default function NewsletterForm() {
   const [email, setEmail] = useState('');
   const [isPending, setIsPending] = useState(false);

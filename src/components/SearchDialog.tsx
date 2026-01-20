@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, X, Loader2, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
 
 export function SearchDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const [query, setQuery] = useState('');
+  const [queryText, setQueryText] = useState('');
+  const [results, setResults] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -21,16 +22,30 @@ export function SearchDialog({ isOpen, onClose }: { isOpen: boolean; onClose: ()
     };
   }, [isOpen]);
 
-  const { data: results, isLoading } = useQuery({
-    queryKey: ['search', query],
-    queryFn: async () => {
-      if (query.length < 2) return [];
-      const res = await fetch(`/api/posts/search?q=${encodeURIComponent(query)}`);
-      if (!res.ok) throw new Error('Search failed');
-      return res.json();
-    },
-    enabled: query.length >= 2,
-  });
+  useEffect(() => {
+    const fetchResults = async () => {
+      if (queryText.length < 2) {
+        setResults([]);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const res = await fetch(`/api/posts/search?q=${encodeURIComponent(queryText)}`);
+        if (!res.ok) throw new Error('Search failed');
+        const data = await res.json();
+        setResults(data);
+      } catch (error) {
+        console.error('Search error:', error);
+        setResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const timer = setTimeout(fetchResults, 300);
+    return () => clearTimeout(timer);
+  }, [queryText]);
 
   if (!isOpen) return null;
 
@@ -51,8 +66,8 @@ export function SearchDialog({ isOpen, onClose }: { isOpen: boolean; onClose: ()
             type="text"
             placeholder="Search articles, topics, and research..."
             className="flex-1 bg-transparent border-none outline-none text-lg text-slate-900 placeholder:text-slate-400"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            value={queryText}
+            onChange={(e) => setQueryText(e.target.value)}
           />
           <button 
             onClick={onClose}
@@ -63,7 +78,7 @@ export function SearchDialog({ isOpen, onClose }: { isOpen: boolean; onClose: ()
         </div>
 
         <div className="max-h-[60vh] overflow-y-auto p-4">
-          {isLoading && query.length >= 2 ? (
+          {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-lime-700" />
             </div>
@@ -94,9 +109,9 @@ export function SearchDialog({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                 </Link>
               ))}
             </div>
-          ) : query.length >= 2 ? (
+          ) : queryText.length >= 2 ? (
             <div className="py-12 text-center text-gray-500">
-              No articles found for &quot;{query}&quot;
+              No articles found for &quot;{queryText}&quot;
             </div>
           ) : (
             <div className="py-12 text-center text-gray-400">
@@ -105,7 +120,7 @@ export function SearchDialog({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                  {['Metabolism', 'Mitochondria', 'Nutrition', 'Beauty'].map(tag => (
                    <button 
                     key={tag}
-                    onClick={() => setQuery(tag)}
+                    onClick={() => setQueryText(tag)}
                     className="px-3 py-1 bg-slate-50 rounded-full text-xs hover:bg-lime-700/10 hover:text-lime-700 transition-colors border border-slate-100"
                    >
                      {tag}
