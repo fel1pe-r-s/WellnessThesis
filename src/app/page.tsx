@@ -86,19 +86,18 @@ export default async function BlogPage() {
             </div>
 
             {/* Sidebar */}
-            <aside className="space-y-12">
+            <aside className="space-y-10">
               <FeaturedProductSpotlight />
-              <div className="sticky top-24 space-y-12">
+              <div className="sticky top-24 space-y-10">
                 <LatestPostsSidebar />
-                <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
-                   <div className="relative z-10 text-center">
-                      <h3 className="text-2xl font-black mb-6 font-serif">Stay Informed</h3>
-                      <p className="text-sm text-slate-400 mb-8 font-medium">Join our curated newsletter for weekly insights into wellness and beauty.</p>
-                      <NewsletterForm />
-                   </div>
+                <div className="bg-slate-900 rounded-[2rem] p-4 text-white shadow-2xl relative overflow-hidden">
+                   {/* Background decorative element */}
+                   <div className="absolute top-0 right-0 w-32 h-32 bg-lime-500/10 rounded-full blur-2xl" />
+                   <NewsletterForm variant="compact" />
                 </div>
               </div>
             </aside>
+
           </div>
         </section>
       </main>

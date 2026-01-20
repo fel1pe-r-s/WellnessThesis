@@ -5,6 +5,8 @@ import { Post } from '@/lib/types';
 import { Clock, Tag, User, ArrowLeft, Share2 } from 'lucide-react';
 import AffiliateCTA from '@/components/AffiliateCTA';
 import LatestPostsSidebar from '@/components/LatestPostsSidebar';
+import NewsletterForm from '@/components/NewsletterForm';
+
 
 export const dynamic = 'force-dynamic';
 
@@ -117,12 +119,12 @@ export default async function PostPage({ params }: { params: { slug: string } })
             </div>
           </div>
 
-          <aside className="lg:col-span-4 space-y-12">
+          <aside className="lg:col-span-4 space-y-10">
             {/* Related Product */}
             {post.productId && post.product_name && (
-              <div className="sticky top-24 space-y-12">
-                <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-sm">
-                   <h4 className="text-[10px] font-black uppercase tracking-widest text-lime-700 mb-6 flex items-center gap-2">
+              <div className="sticky top-24 space-y-10">
+                <div className="bg-white rounded-[2rem] border border-slate-200 p-6 shadow-sm">
+                   <h4 className="text-[9px] font-black uppercase tracking-widest text-lime-700 mb-4 flex items-center gap-2">
                      <Tag className="w-3 h-3" /> Recommended Solution
                    </h4>
                    <AffiliateCTA 
@@ -132,18 +134,26 @@ export default async function PostPage({ params }: { params: { slug: string } })
                    />
                 </div>
                 <LatestPostsSidebar />
+                <div className="bg-slate-900 rounded-[2rem] p-4 text-white shadow-2xl relative overflow-hidden">
+                   <div className="absolute top-0 right-0 w-32 h-32 bg-lime-500/10 rounded-full blur-2xl" />
+                   <NewsletterForm variant="compact" />
+                </div>
               </div>
             )}
 
             {!post.productId && (
-              <div className="sticky top-24 space-y-12">
+              <div className="sticky top-24 space-y-10">
                 <LatestPostsSidebar />
-                <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-sm text-center">
-                   <Share2 className="w-8 h-8 text-slate-200 mx-auto mb-4" />
-                   <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-6">Share this discovery</p>
-                   <div className="flex justify-center gap-4">
+                <div className="bg-slate-900 rounded-[2rem] p-4 text-white shadow-2xl relative overflow-hidden">
+                   <div className="absolute top-0 right-0 w-32 h-32 bg-lime-500/10 rounded-full blur-2xl" />
+                   <NewsletterForm variant="compact" />
+                </div>
+                <div className="bg-white rounded-[2rem] border border-slate-200 p-6 shadow-sm text-center">
+                   <Share2 className="w-6 h-6 text-slate-200 mx-auto mb-3" />
+                   <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Share this discovery</p>
+                   <div className="flex justify-center gap-3">
                       {['TW', 'FB', 'LI'].map(social => (
-                        <div key={social} className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-[10px] font-black text-slate-400 hover:text-lime-700 hover:border-lime-700/30 cursor-pointer transition-all">
+                        <div key={social} className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-[10px] font-black text-slate-400 hover:text-lime-700 hover:border-lime-700/30 cursor-pointer transition-all">
                           {social}
                         </div>
                       ))}
@@ -152,6 +162,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
               </div>
             )}
           </aside>
+
         </div>
       </div>
     </article>

@@ -36,20 +36,10 @@ export default function NotFound() {
             <Home className="w-4 h-4" />
             Back to Dashboard
           </Link>
-          <button
-            onClick={() => window.location.href = '#search'}
-            className="bg-white text-slate-900 border-2 border-slate-100 px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-slate-50 hover:border-slate-200 transition-all active:scale-95"
-          >
-            <Search className="w-4 h-4" />
-            Explore Library
-          </button>
+         
         </div>
 
-        <div className="mt-20 flex justify-center gap-8 opacity-20">
-           {['BIOHACKING', 'NUTRITION', 'BEAUTY', 'FITNESS'].map(tag => (
-             <span key={tag} className="text-[10px] font-black tracking-widest">{tag}</span>
-           ))}
-        </div>
+        
       </div>
     </div>
   );
