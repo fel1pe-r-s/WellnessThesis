@@ -15,6 +15,7 @@ export async function GET() {
       imageUrl: row.image_url,
       category: row.category,
       published: Boolean(row.published),
+      isFeatured: Boolean(row.is_featured),
       authorId: row.author_id,
       ctaLink: row.cta_link,
       productId: row.product_id,
@@ -49,8 +50,8 @@ export async function POST(request: Request) {
     const now = new Date();
     
     const { rows } = await pool.query(
-      `INSERT INTO posts (title, slug, content, image_url, category, published, author_id, cta_link, product_id, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      `INSERT INTO posts (title, slug, content, image_url, category, published, is_featured, author_id, cta_link, product_id, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING *`,
       [
         validatedData.title,
@@ -59,6 +60,7 @@ export async function POST(request: Request) {
         validatedData.imageUrl || null,
         validatedData.category,
         validatedData.published || false,
+        validatedData.isFeatured || false,
         validatedData.authorId || null,
         validatedData.ctaLink || null,
         validatedData.productId || null,
@@ -75,6 +77,7 @@ export async function POST(request: Request) {
         imageUrl: row.image_url,
         category: row.category,
         published: Boolean(row.published),
+        isFeatured: Boolean(row.is_featured),
         authorId: row.author_id,
         ctaLink: row.cta_link,
         productId: row.product_id,

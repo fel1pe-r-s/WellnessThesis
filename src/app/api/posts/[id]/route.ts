@@ -25,6 +25,7 @@ export async function GET(
       imageUrl: row.image_url,
       category: row.category,
       published: Boolean(row.published),
+      isFeatured: Boolean(row.is_featured),
       authorId: row.author_id,
       ctaLink: row.cta_link,
       productId: row.product_id,
@@ -64,6 +65,7 @@ export async function PUT(
     if (validatedData.imageUrl !== undefined) dbData.image_url = validatedData.imageUrl;
     if (validatedData.category !== undefined) dbData.category = validatedData.category;
     if (validatedData.published !== undefined) dbData.published = validatedData.published;
+    if (validatedData.isFeatured !== undefined) dbData.is_featured = validatedData.isFeatured;
     if (validatedData.authorId !== undefined) dbData.author_id = validatedData.authorId;
     if (validatedData.ctaLink !== undefined) dbData.cta_link = validatedData.ctaLink;
     if (validatedData.productId !== undefined) dbData.product_id = validatedData.productId;

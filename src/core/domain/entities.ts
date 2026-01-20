@@ -14,6 +14,8 @@ export interface Post {
   imageUrl?: string | null;
   category: string;
   published: boolean;
+  isFeatured: boolean;
+
   authorId?: string | null;
   createdAt: Date;
   updatedAt: Date;

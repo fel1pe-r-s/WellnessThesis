@@ -40,7 +40,8 @@ export default function AdminEditor() {
     content: '',
     imageUrl: '',
     productId: '',
-    published: false
+    published: false,
+    isFeatured: false
   });
 
   const [products, setProducts] = useState<any[]>([]);
@@ -259,8 +260,23 @@ export default function AdminEditor() {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-4 pt-4 border-t border-slate-100">
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                  <div className="space-y-0.5">
+                    <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Featured Insight</Label>
+                    <p className="text-[10px] text-slate-400 pl-1">Display at hero section</p>
+                  </div>
+                  <input 
+                    type="checkbox"
+                    checked={post.isFeatured}
+                    onChange={(e) => setPost({...post, isFeatured: e.target.checked})}
+                    className="w-5 h-5 accent-lime-700 rounded-md"
+                  />
+                </div>
+              </div>
             </CardContent>
           </Card>
+
 
           <Card className="bg-gradient-to-br from-slate-50 to-white border-2 border-lime-700/30 rounded-3xl shadow-xl overflow-hidden relative group">
             <div className="absolute -right-8 -top-8 bg-lime-700/5 h-24 w-24 rounded-full blur-2xl group-hover:scale-150 transition-all duration-700"></div>

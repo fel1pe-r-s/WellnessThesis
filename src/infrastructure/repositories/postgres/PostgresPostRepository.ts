@@ -12,7 +12,9 @@ export class PostgresPostRepository implements IPostRepository {
       imageUrl: row.image_url,
       category: row.category,
       published: row.published,
+      isFeatured: row.is_featured,
       authorId: row.author_id,
+
       ctaLink: row.cta_link,
       productId: row.product_id,
       createdAt: row.created_at,
@@ -99,8 +101,8 @@ export class PostgresPostRepository implements IPostRepository {
 
   async create(data: any): Promise<Post> {
     const { rows } = await pool.query(
-      `INSERT INTO posts (title, slug, content, image_url, category, published, author_id, cta_link, product_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO posts (title, slug, content, image_url, category, published, is_featured, author_id, cta_link, product_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING *`,
       [
         data.title,
@@ -109,10 +111,12 @@ export class PostgresPostRepository implements IPostRepository {
         data.imageUrl || null,
         data.category,
         data.published || false,
+        data.isFeatured || false,
         data.authorId || null,
         data.ctaLink || null,
         data.productId || null
       ]
+
     );
     return this.mapRowToPost(rows[0]);
   }
@@ -128,6 +132,7 @@ export class PostgresPostRepository implements IPostRepository {
     if (data.imageUrl !== undefined) { fields.push(`image_url = $${idx++}`); values.push(data.imageUrl); }
     if (data.category !== undefined) { fields.push(`category = $${idx++}`); values.push(data.category); }
     if (data.published !== undefined) { fields.push(`published = $${idx++}`); values.push(data.published); }
+    if (data.isFeatured !== undefined) { fields.push(`is_featured = $${idx++}`); values.push(data.isFeatured); }
     if (data.authorId !== undefined) { fields.push(`author_id = $${idx++}`); values.push(data.authorId); }
     if (data.ctaLink !== undefined) { fields.push(`cta_link = $${idx++}`); values.push(data.ctaLink); }
     if (data.productId !== undefined) { fields.push(`product_id = $${idx++}`); values.push(data.productId); }

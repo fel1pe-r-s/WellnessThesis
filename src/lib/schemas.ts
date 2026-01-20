@@ -8,6 +8,7 @@ export const PostSchema = z.object({
   imageUrl: z.string().url().nullable().optional(),
   category: z.string().min(1, 'Category is required'),
   published: z.boolean().default(false),
+  isFeatured: z.boolean().default(false),
   authorId: z.string().nullable().optional(),
   ctaLink: z.string().url().nullable().optional(),
   productId: z.string().nullable().optional(),
