@@ -13,8 +13,8 @@ console.log('🔌 DB Connection: Neon Serverless (HTTP Driver)');
 // Agora usando a chamada direta da função neon que é compatível com hosting sem suporte a Pool
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const query = async (text: string, params?: any[]): Promise<{ rows: any[]; rowCount: number }> => {
-  // Chamada direta da função neon: sql(text, params)
-  const rows = await sql(text, params || []);
+  // Para chamadas com parâmetros, o Neon agora exige o uso de sql.query ou tagged templates
+  const rows = await (sql as any).query(text, params || []);
   return { 
     rows: rows as any[], 
     rowCount: (rows as any[]).length 

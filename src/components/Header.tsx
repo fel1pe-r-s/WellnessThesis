@@ -1,14 +1,20 @@
 'use client';
 
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { useState } from 'react';
+import Image from 'next/image';
+import { Menu, X, Search } from 'lucide-react';
+import { SearchDialog } from './SearchDialog';
 import DesktopNav from './DesktopNav';
 import MobileNav from './MobileNav';
+
+interface HeaderProps {
+  categories: string[];
+}
 
 export default function Header({ categories }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-
 
   return (
     <header className="bg-white/70 backdrop-blur-xl shadow-[0_2px_20px_-5px_rgba(0,0,0,0.05)] sticky top-0 z-50 border-b border-slate-200/50 transition-all duration-500">
@@ -47,7 +53,7 @@ export default function Header({ categories }: HeaderProps) {
                 </Link>
             </div>
 
-            {/* Mobile Menu Button - Only show if categories exist or other mobile links needed */}
+            {/* Mobile Menu Button */}
             <button 
                 className="md:hidden p-2 text-slate-600 hover:text-lime-700 transition-all active:scale-90"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -61,11 +67,6 @@ export default function Header({ categories }: HeaderProps) {
         {isMobileMenuOpen && (
             <MobileNav categories={categories} onClose={() => setIsMobileMenuOpen(false)} />
         )}
-      </div>
-    </header>
-  );
-}
-
       </div>
     </header>
   );
