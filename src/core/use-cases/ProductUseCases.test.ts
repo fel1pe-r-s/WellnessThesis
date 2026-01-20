@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { CreateProductUseCase } from '../ProductUseCases';
+import { CreateProductUseCase } from './ProductUseCases';
 import { Product } from '../../domain/entities';
 
 // In-Memory Repository for testing as requested by user rules
