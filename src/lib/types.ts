@@ -9,6 +9,7 @@ export interface Post {
   authorId?: string;
   ctaLink?: string;
   productId?: string;
+  isFeatured?: boolean;
   createdAt: string | Date;
   updatedAt: string | Date;
   // Product details joined
