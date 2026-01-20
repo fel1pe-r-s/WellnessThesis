@@ -7,6 +7,7 @@ import { Menu, X, Search } from 'lucide-react';
 import { SearchDialog } from './SearchDialog';
 import DesktopNav from './DesktopNav';
 import MobileNav from './MobileNav';
+import { NewsletterModal } from './NewsletterModal';
 
 interface HeaderProps {
   categories: string[];
@@ -15,10 +16,12 @@ interface HeaderProps {
 export default function Header({ categories }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
 
   return (
     <header className="bg-white/70 backdrop-blur-xl shadow-[0_2px_20px_-5px_rgba(0,0,0,0.05)] sticky top-0 z-50 border-b border-slate-200/50 transition-all duration-500">
       <SearchDialog isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+      <NewsletterModal isOpen={isNewsletterOpen} onClose={() => setIsNewsletterOpen(false)} />
       <div className="container mx-auto px-6 py-3.5">
         <div className="flex justify-between items-center">
             {/* Logo */}
@@ -48,9 +51,12 @@ export default function Header({ categories }: HeaderProps) {
                 >
                     <Search className="w-5 h-5 stroke-[2.5px]" />
                 </button>
-                <Link href="#newsletter" className="ml-2 px-7 py-3 text-[13px] font-black bg-gradient-to-r from-lime-700 to-lime-600 text-white rounded-full hover:shadow-[0_8px_25px_-5px_rgba(77,124,15,0.4)] transition-all transform hover:-translate-y-0.5 active:scale-95 border border-lime-600/20 uppercase tracking-wider">
+                <button 
+                  onClick={() => setIsNewsletterOpen(true)}
+                  className="ml-2 px-7 py-3 text-[13px] font-black bg-gradient-to-r from-lime-700 to-lime-600 text-white rounded-full hover:shadow-[0_8px_25px_-5px_rgba(77,124,15,0.4)] transition-all transform hover:-translate-y-0.5 active:scale-95 border border-lime-600/20 uppercase tracking-wider"
+                >
                     Subscribe
-                </Link>
+                </button>
             </div>
 
             {/* Mobile Menu Button */}

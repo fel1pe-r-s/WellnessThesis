@@ -6,20 +6,45 @@ import { query } from '@/lib/db';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email } = SubscriberSchema.parse(body);
+    const { email, name, website } = body; // website is the honeypot
 
-    const id = Math.random().toString(36).substring(7);
+    // 1. Honeypot check: If 'website' field is filled, it's likely a bot.
+    if (website) {
+      console.warn('Newsletter Honeypot triggered');
+      return NextResponse.json({ message: 'Subscribed successfully' }, { status: 201 }); // Stealth block
+    }
+
+    const validatedData = SubscriberSchema.parse({ email, name });
+
+    // 2. IP Rate Limiting
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
+    
+    // Ensure rate limiting table exists
+    try {
+      await query('CREATE TABLE IF NOT EXISTS newsletter_rate_limits (ip TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)');
+    } catch (e) {
+      console.error('Migration error (rate_limits):', e);
+    }
+
+    // Check recent attempts (last 10 minutes)
+    const { rows: recentAttempts } = await query(
+      'SELECT COUNT(*) as count FROM newsletter_rate_limits WHERE ip = $1 AND created_at > NOW() - INTERVAL \'10 minutes\'',
+      [ip]
+    );
+
+    if (parseInt(recentAttempts[0].count) >= 5) {
+      return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
+    }
+
+    // Record attempt
+    await query('INSERT INTO newsletter_rate_limits (ip) VALUES ($1)', [ip]);
+
+    const id = crypto.randomUUID();
     const now = new Date();
     
-    // Postgres doesn't ignore duplicate keys by default without ON CONFLICT, 
-    // but the original code didn't handle unique constraint error explicitly or relied on try/catch.
-    // The Schema check is simple email.
-    // Using ON CONFLICT DO NOTHING to match "subscribe successfully" even if already there, or return error.
-    // Original code was just INSERT. If unique index on email, it throws.
-    
     await query(
-      'INSERT INTO subscribers (id, email, created_at) VALUES ($1, $2, $3)',
-      [id, email, now]
+      'INSERT INTO subscribers (id, name, email, created_at) VALUES ($1, $2, $3, $4) ON CONFLICT (email) DO NOTHING',
+      [id, validatedData.name || null, validatedData.email, now]
     );
 
     return NextResponse.json({ message: 'Subscribed successfully' }, { status: 201 });

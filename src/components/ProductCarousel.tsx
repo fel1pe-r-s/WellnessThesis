@@ -11,15 +11,17 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
 
 
   return (
-    <section className="py-24 bg-slate-900 border-t border-slate-800 relative overflow-hidden">
+    <section className="py-12 bg-slate-900 border-t border-slate-800 relative overflow-hidden">
+
       {/* Background accents */}
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_30%,rgba(77,124,15,0.05)_0%,transparent_50%)]" />
       
       <div className="container mx-auto px-6 relative z-10">
-        <div className="flex items-end justify-between mb-16">
+        <div className="flex items-end justify-between mb-10">
+
           <div>
             <span className="text-lime-500 text-[10px] font-black uppercase tracking-[0.3em] mb-4 block">Premium Selection</span>
-            <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none">Curated <span className="text-lime-500">Solutions</span></h2>
+            <h2 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter leading-none">Curated <span className="text-lime-500">Solutions</span></h2>
           </div>
           <div className="flex gap-4 hidden md:flex">
              <button className="p-4 rounded-2xl bg-white/5 border border-white/10 text-slate-400 hover:text-lime-500 hover:border-lime-500/50 transition-all active:scale-90">
@@ -35,10 +37,12 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
           {products.map((product) => (
             <div 
               key={product.id} 
-              className="group bg-white/5 backdrop-blur-sm rounded-[2.5rem] p-7 border border-white/10 hover:border-lime-500/30 transition-all duration-700 hover:-translate-y-3 relative overflow-hidden shadow-2xl"
+              className="group bg-white/5 backdrop-blur-sm rounded-[2rem] p-5 border border-white/10 hover:border-lime-500/30 transition-all duration-700 hover:-translate-y-2 relative overflow-hidden shadow-2xl"
             >
+
               {/* Image Container */}
-              <div className="aspect-[4/5] rounded-[2rem] overflow-hidden mb-8 relative bg-slate-800">
+              <div className="aspect-video rounded-xl overflow-hidden mb-6 relative bg-slate-800">
+
                 <img 
                   src={product.imageUrl} 
                   alt={product.name}
@@ -55,15 +59,16 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
               <div className="px-1">
                 <span className="text-lime-500/80 text-[10px] font-black uppercase tracking-[0.2em] mb-3 block">{product.category}</span>
                 <h3 className="text-xl font-bold text-white mb-3 tracking-tight line-clamp-1">{product.name}</h3>
-                <p className="text-slate-400 text-sm mb-10 line-clamp-2 leading-relaxed font-medium">
+                <p className="text-slate-400 text-[11px] mb-6 line-clamp-2 leading-relaxed font-medium">
                   {product.description}
                 </p>
+
 
                 <a 
                   href={product.affiliateLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-3 w-full py-5 bg-white text-slate-900 font-black rounded-[1.25rem] hover:bg-lime-500 transition-all duration-500 shadow-lg active:scale-95 uppercase tracking-widest text-[11px]"
+                  className="flex items-center justify-center gap-3 w-full py-3.5 bg-white text-slate-900 font-black rounded-xl hover:bg-lime-500 transition-all duration-500 shadow-lg active:scale-95 uppercase tracking-widest text-[9px] after:absolute after:inset-0 after:content-['']"
                 >
                   Acquire Now <ShoppingBag size={18} strokeWidth={2.5} />
                 </a>

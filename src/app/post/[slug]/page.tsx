@@ -6,18 +6,21 @@ import { Clock, Tag, User, ArrowLeft, Share2 } from 'lucide-react';
 import AffiliateCTA from '@/components/AffiliateCTA';
 import LatestPostsSidebar from '@/components/LatestPostsSidebar';
 import NewsletterForm from '@/components/NewsletterForm';
+import NewsletterCTA from '@/components/NewsletterCTA';
 
 
 export const dynamic = 'force-dynamic';
 
-async function getPost(slug: string): Promise<Post | null> {
+async function getPost(slug: string, isPreview: boolean = false): Promise<Post | null> {
+  const publishedClause = isPreview ? '' : 'AND p.published = true';
   const { rows } = await query(
     `SELECT p.*, pr.name as product_name, pr.description as product_description, pr.affiliate_link as product_affiliate_link 
      FROM posts p 
      LEFT JOIN products pr ON p.product_id = pr.id 
-     WHERE p.slug = $1 AND p.published = true`,
+     WHERE p.slug = $1 ${publishedClause}`,
     [slug]
   );
+
   
   if (rows.length === 0) return null;
   
@@ -32,9 +35,13 @@ async function getPost(slug: string): Promise<Post | null> {
   } as Post;
 }
 
-export default async function PostPage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
-  const post = await getPost(slug);
+export default async function PostPage({ params, searchParams }: { params: Promise<{ slug: string }>, searchParams: Promise<{ preview?: string }> }) {
+  const { slug } = await params;
+  const { preview } = await searchParams;
+  const isPreview = preview === 'true';
+
+  const post = await getPost(slug, isPreview);
+
 
   if (!post) {
     return (
@@ -107,16 +114,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
             />
 
             {/* Newsletter CTA */}
-            <div className="bg-slate-900 rounded-[3rem] p-12 text-white shadow-2xl relative overflow-hidden">
-               <div className="absolute top-0 right-0 w-64 h-64 bg-lime-500/10 rounded-full blur-3xl" />
-               <div className="relative z-10 max-w-xl">
-                  <h3 className="text-3xl font-serif font-black mb-4">Never miss an insight.</h3>
-                  <p className="text-slate-400 font-medium mb-8">Join our community of wellness seekers for weekly research updates and exclusive recommendations.</p>
-                  <Link href="#newsletter" className="inline-block px-10 py-5 bg-lime-700 text-white font-black rounded-2xl shadow-xl shadow-lime-900/20 hover:bg-lime-600 transition-all uppercase tracking-widest text-xs">
-                    Join the Research Community
-                  </Link>
-               </div>
-            </div>
+            <NewsletterCTA />
           </div>
 
           <aside className="lg:col-span-4 space-y-10">

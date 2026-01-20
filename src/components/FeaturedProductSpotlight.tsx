@@ -12,7 +12,7 @@ interface FeaturedProduct {
   affiliateLink: string;
 }
 
-export default async function FeaturedProductSpotlight() {
+export default async function FeaturedProductSpotlight({ inFeed = false }: { inFeed?: boolean }) {
   let product: FeaturedProduct | null = null;
 
   try {
@@ -34,8 +34,49 @@ export default async function FeaturedProductSpotlight() {
     console.error('Error fetching featured product:', error);
   }
 
-  if (!product) {
-    return null;
+  if (!product) return null;
+
+  if (inFeed) {
+    return (
+      <div className="bg-slate-900 rounded-[3rem] overflow-hidden shadow-2xl relative group border border-slate-800">
+        <div className="flex flex-col md:flex-row items-center">
+          <div className="md:w-1/2 relative aspect-video md:aspect-auto self-stretch overflow-hidden">
+            <img 
+              src={product.imageUrl} 
+              alt={product.name} 
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/60 to-transparent" />
+            <div className="absolute top-6 left-6">
+              <div className="inline-flex items-center gap-1.5 bg-lime-700/80 backdrop-blur-md border border-lime-500/30 text-white text-[9px] font-black px-4 py-2 rounded-full uppercase shadow-xl">
+                <Star className="w-3 h-3 fill-current" />
+                Spotlight of the Week
+              </div>
+            </div>
+          </div>
+          <div className="md:w-1/2 p-8 md:p-12 space-y-6">
+            <h3 className="text-3xl md:text-4xl font-black text-white font-serif tracking-tight leading-[1.1]">
+              {product.name}
+            </h3>
+            {product.description && (
+              <p className="text-slate-400 text-lg font-medium leading-relaxed line-clamp-3">
+                {product.description}
+              </p>
+            )}
+            <div className="pt-4">
+              <Link
+                href={product.affiliateLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-3 bg-lime-700 hover:bg-lime-600 text-white font-black px-10 py-5 rounded-2xl transition-all shadow-xl shadow-lime-900/40 uppercase tracking-widest text-xs active:scale-95"
+              >
+                Acquire Exclusive Discovery
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -77,3 +118,4 @@ export default async function FeaturedProductSpotlight() {
     </div>
   );
 }
+

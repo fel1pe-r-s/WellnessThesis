@@ -16,7 +16,7 @@ export default function PostCard({ post, featured = false }: PostCardProps) {
 
   if (featured) {
     return (
-      <article className="bg-white rounded-[2.5rem] overflow-hidden shadow-xl border border-slate-100 group">
+      <article className="relative bg-white rounded-[2.5rem] overflow-hidden shadow-xl border border-slate-100 group">
         <div className="flex flex-col lg:flex-row">
           <div className="lg:w-1/2 relative h-[300px] lg:h-auto overflow-hidden">
             <img
@@ -43,7 +43,7 @@ export default function PostCard({ post, featured = false }: PostCardProps) {
               </div>
             </div>
             <h3 className="text-3xl md:text-4xl font-black text-slate-900 font-serif leading-[1.1] tracking-tight group-hover:text-lime-700 transition-colors">
-              <Link href={`/post/${post.slug}`}>
+              <Link href={`/post/${post.slug}`} className="after:absolute after:inset-0 after:content-['']">
                 {post.title}
               </Link>
             </h3>
@@ -66,7 +66,7 @@ export default function PostCard({ post, featured = false }: PostCardProps) {
   }
 
   return (
-    <article className="bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-100 group flex flex-col h-full">
+    <article className="relative bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-100 group flex flex-col h-full">
       <div className="relative aspect-[16/10] overflow-hidden">
         <img
           src={post.imageUrl || "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80"}
@@ -86,7 +86,7 @@ export default function PostCard({ post, featured = false }: PostCardProps) {
           </div>
         </div>
         <h3 className="text-2xl font-black text-slate-900 font-serif leading-tight tracking-tight group-hover:text-lime-700 transition-colors line-clamp-2">
-          <Link href={`/post/${post.slug}`}>
+          <Link href={`/post/${post.slug}`} className="after:absolute after:inset-0 after:content-['']">
             {post.title}
           </Link>
         </h3>

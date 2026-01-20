@@ -3,10 +3,13 @@ import { useState } from 'react';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 interface NewsletterFormProps {
   variant?: 'default' | 'compact';
+  onLight?: boolean;
 }
 
-export default function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
+export default function NewsletterForm({ variant = 'default', onLight = false }: NewsletterFormProps) {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [website, setWebsite] = useState(''); // Honeypot
   const [isPending, setIsPending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +27,7 @@ export default function NewsletterForm({ variant = 'default' }: NewsletterFormPr
       const res = await fetch('/api/newsletter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, name, website }),
       });
 
       const data = await res.json();
@@ -49,7 +52,7 @@ export default function NewsletterForm({ variant = 'default' }: NewsletterFormPr
       className={`
         relative overflow-hidden transition-all duration-500 shadow-xl 
         ${isCompact 
-          ? 'bg-white/5 border border-white/10 rounded-[2rem] p-8 text-left shadow-white/5' 
+          ? `${onLight ? 'bg-slate-50 border-slate-200' : 'bg-white/5 border-white/10 shadow-white/5'} border rounded-[2rem] p-8 text-left` 
           : 'bg-white/50 backdrop-blur-md border border-slate-200/50 rounded-[2.5rem] p-10 md:p-20 text-center shadow-slate-200/20 my-20'
         }
       `}
@@ -66,21 +69,21 @@ export default function NewsletterForm({ variant = 'default' }: NewsletterFormPr
       <div className={`relative z-10 ${isCompact ? 'w-full' : 'max-w-2xl mx-auto'}`}>
         <span className={`
           inline-block px-3 py-1 rounded-full uppercase font-black tracking-[0.2em] mb-4
-          ${isCompact ? 'bg-white/10 text-white/60 text-[8px]' : 'bg-lime-100/50 text-lime-700 text-[10px]'}
+          ${isCompact ? `${onLight ? 'bg-slate-200 text-slate-500' : 'bg-white/10 text-white/60'} text-[8px]` : 'bg-lime-100/50 text-lime-700 text-[10px]'}
         `}>
           {isCompact ? 'Newsletter' : 'WELLNESS THESIS NEWSLETTER'}
         </span>
         
         <h2 className={`
           font-serif font-black mb-4 leading-tight
-          ${isCompact ? 'text-2xl text-white' : 'text-4xl md:text-5xl text-slate-900'}
+          ${isCompact ? (onLight ? 'text-2xl text-slate-900' : 'text-2xl text-white') : 'text-4xl md:text-5xl text-slate-900'}
         `}>
           {isCompact ? 'Stay Informed' : <>Join the <span className="text-lime-700 italic">Inner Circle</span></>}
         </h2>
         
         <p className={`
           font-medium mb-8 leading-relaxed
-          ${isCompact ? 'text-slate-400 text-xs' : 'text-slate-500 text-lg'}
+          ${isCompact ? (onLight ? 'text-slate-500 text-xs' : 'text-slate-400 text-xs') : 'text-slate-500 text-lg'}
         `}>
           {isCompact 
             ? 'Insights on metabolic efficiency and longevity science.' 
@@ -89,6 +92,35 @@ export default function NewsletterForm({ variant = 'default' }: NewsletterFormPr
         </p>
 
         <form onSubmit={handleSubmit} className={`flex gap-3 relative group/form ${isCompact ? 'flex-col' : 'flex-col md:flex-row max-w-lg mx-auto'}`}>
+          {/* Honeypot field - Visually hidden */}
+          <div className="hidden" aria-hidden="true">
+            <input 
+              type="text" 
+              name="website" 
+              value={website} 
+              onChange={(e) => setWebsite(e.target.value)} 
+              tabIndex={-1} 
+              autoComplete="off" 
+            />
+          </div>
+          
+          <input
+            type="text"
+            placeholder="Your Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            disabled={isPending || isSuccess}
+            className={`
+              px-6 py-4 rounded-xl font-medium transition-all disabled:opacity-70 
+              ${isCompact 
+                ? onLight 
+                  ? 'bg-slate-100 border-slate-200 text-slate-900 placeholder:text-slate-400' 
+                  : 'bg-white/10 border-white/10 text-white placeholder:text-slate-500 focus:outline-[2px] focus:outline-white/20' 
+                : 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-[3px] focus:outline-lime-700/20'
+              }
+              ${isCompact ? 'w-full' : 'md:w-40'}
+            `}
+          />
           <input
             type="email"
             placeholder="Your best email"
@@ -98,7 +130,9 @@ export default function NewsletterForm({ variant = 'default' }: NewsletterFormPr
             className={`
               flex-1 px-6 py-4 rounded-xl font-medium transition-all disabled:opacity-70 
               ${isCompact 
-                ? 'bg-white/10 border-white/10 text-white placeholder:text-slate-500 focus:outline-[2px] focus:outline-white/20' 
+                ? onLight
+                  ? 'bg-slate-100 border-slate-200 text-slate-900 placeholder:text-slate-400'
+                  : 'bg-white/10 border-white/10 text-white placeholder:text-slate-500 focus:outline-[2px] focus:outline-white/20' 
                 : 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-[3px] focus:outline-lime-700/20'
               }
             `}
@@ -110,7 +144,9 @@ export default function NewsletterForm({ variant = 'default' }: NewsletterFormPr
             className={`
               font-black rounded-xl transition-all transform active:scale-95 disabled:opacity-70 disabled:hover:translate-y-0 flex items-center justify-center gap-2 uppercase tracking-widest text-[10px]
               ${isCompact 
-                ? 'bg-white text-slate-900 py-4 hover:bg-slate-100' 
+                ? onLight
+                  ? 'bg-lime-700 text-white py-4 hover:bg-lime-600'
+                  : 'bg-white text-slate-900 py-4 hover:bg-slate-100' 
                 : 'bg-gradient-to-br from-lime-700 to-lime-600 text-white py-5 px-10 hover:shadow-[0_10px_30px_-5px_rgba(77,124,15,0.4)] hover:-translate-y-1'
               }
             `}

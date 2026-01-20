@@ -44,6 +44,8 @@ async function getBlogData() {
   return { posts, products };
 }
 
+import PostFeed from '@/components/PostFeed';
+
 export default async function BlogPage() {
   const { posts, products } = await getBlogData();
   const featuredPost = posts[0];
@@ -66,7 +68,7 @@ export default async function BlogPage() {
         <section className="container mx-auto px-6 py-20">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
             {/* Posts Grid */}
-            <div className="lg:col-span-2 space-y-12">
+            <div className="lg:col-span-2">
               {regularPosts.length > 0 && (
                 <div className="flex items-center justify-between border-b border-slate-200 pb-6 mb-12">
                   <h2 className="text-3xl font-serif font-black text-slate-900 tracking-tight">Recent Insights</h2>
@@ -76,12 +78,11 @@ export default async function BlogPage() {
                 </div>
               )}
 
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {regularPosts.map((post) => (
-                  <PostCard key={post.id} post={post} />
-                ))}
-              </div>
+              <PostFeed 
+                initialPosts={regularPosts} 
+                spotlightElement={<FeaturedProductSpotlight inFeed={true} />} 
+              />
+
 
               {regularPosts.length === 0 && !featuredPost && (
                 <div className="py-20 text-center">
@@ -91,11 +92,14 @@ export default async function BlogPage() {
             </div>
 
             {/* Sidebar */}
-            <aside className="space-y-10">
-              <FeaturedProductSpotlight />
-              <div className="sticky top-24 space-y-10">
+            <aside className="lg:col-span-1">
+              <div className="sticky top-24 space-y-10 flex flex-col min-h-[calc(100vh-6rem)]">
+                <div className="hidden md:block">
+                  <FeaturedProductSpotlight />
+                </div>
                 <LatestPostsSidebar />
-                <div className="bg-slate-900 rounded-[2rem] p-4 text-white shadow-2xl relative overflow-hidden">
+
+                <div className="bg-slate-900 rounded-[2rem] p-4 text-white shadow-2xl relative overflow-hidden mt-auto">
                    {/* Background decorative element */}
                    <div className="absolute top-0 right-0 w-32 h-32 bg-lime-500/10 rounded-full blur-2xl" />
                    <NewsletterForm variant="compact" />
@@ -107,6 +111,6 @@ export default async function BlogPage() {
         </section>
       </main>
     </div>
-
   );
 }
+
