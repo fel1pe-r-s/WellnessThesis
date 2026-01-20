@@ -100,10 +100,10 @@ export default async function DashboardPage() {
           <p className="text-slate-500 font-medium">Monitoring the WellnessThesis ecosystem.</p>
         </div>
         <div className="flex gap-3">
-          <Link href="/admin/posts/new" className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition-colors flex items-center gap-2">
+          <Link href="/posts/new" className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition-colors flex items-center gap-2">
             <FileText size={14} /> New Post
           </Link>
-          <Link href="/admin/products/new" className="px-4 py-2 bg-white border border-slate-200 text-slate-900 text-xs font-bold rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-2">
+          <Link href="/products/new" className="px-4 py-2 bg-white border border-slate-200 text-slate-900 text-xs font-bold rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-2">
             <ShoppingBag size={14} /> Add Product
           </Link>
         </div>
@@ -139,7 +139,7 @@ export default async function DashboardPage() {
               <Clock size={20} className="text-lime-700" />
               Recent Insights
             </h2>
-            <Link href="/admin/posts" className="text-xs font-black text-lime-700 uppercase tracking-widest hover:underline">View All</Link>
+            <Link href="/posts" className="text-xs font-black text-lime-700 uppercase tracking-widest hover:underline">View All</Link>
           </div>
           <div className="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
@@ -176,7 +176,7 @@ export default async function DashboardPage() {
                         {new Date(post.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <Link href={`/admin/posts/edit/${post.id}`} className="p-2 text-slate-400 hover:text-lime-700 transition-colors inline-block">
+                        <Link href={`/posts/edit/${post.id}`} className="p-2 text-slate-400 hover:text-lime-700 transition-colors inline-block">
                           <Edit size={16} />
                         </Link>
                       </td>
@@ -222,7 +222,7 @@ export default async function DashboardPage() {
                   </div>
                   
                   <Link 
-                    href={`/admin/products/edit/${stats.featuredProduct.id}`}
+                    href={`/products/edit/${stats.featuredProduct.id}`}
                     className="w-full py-4 bg-white text-slate-900 font-black rounded-2xl shadow-lg hover:bg-lime-500 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2 uppercase tracking-widest text-[10px]"
                   >
                     Edit Featured Product <Edit size={14} />
@@ -232,7 +232,7 @@ export default async function DashboardPage() {
                 <div className="py-4 text-center">
                   <p className="text-sm text-white/50 mb-6 italic">No product is currently featured in the spotlight.</p>
                   <Link 
-                    href="/admin/products"
+                    href="/products"
                     className="w-full py-4 bg-white/10 text-white font-black rounded-2xl border border-white/10 hover:bg-white/20 transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-[10px]"
                   >
                     Select Featured

@@ -76,7 +76,7 @@ export default function PostsPage() {
           <p className="text-slate-500 mt-1 font-medium italic">Your scientific narratives for a healthier world.</p>
         </div>
         
-        <Link href="/admin/editor">
+        <Link href="/editor">
           <Button className="bg-[#13eca4] text-[#111816] font-bold hover:bg-[#0fd693] shadow-lg shadow-[#13eca4]/20 gap-2 h-12 px-6 rounded-xl">
             <Plus size={20} strokeWidth={3} />
             Draft New Post
@@ -174,7 +174,7 @@ export default function PostsPage() {
                     </TableCell>
                     <TableCell className="px-6 py-4 text-right">
                        <div className="flex items-center justify-end gap-2">
-                           <Link href={`/admin/editor/${post.id}`}>
+                           <Link href={`/editor/${post.id}`}>
                             <Button size="icon" variant="ghost" className="h-8 w-8 text-slate-400 hover:text-lime-700 hover:bg-lime-700/10 rounded-lg transition-all">
                                <Edit2 size={16} />
                             </Button>

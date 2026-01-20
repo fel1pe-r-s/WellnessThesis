@@ -7,11 +7,9 @@ import {
   LayoutDashboard, 
   FileText, 
   ShoppingBag, 
-  Settings, 
   LogOut, 
   PlusCircle,
-  TrendingUp,
-  Users
+  TrendingUp
 } from 'lucide-react';
 
 interface SidebarItemProps {
@@ -37,7 +35,7 @@ const SidebarItem = ({ href, icon, label, active }: SidebarItemProps) => (
   </Link>
 );
 
-export default function AdminLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -50,9 +48,9 @@ export default function AdminLayout({
       <aside className="w-64 bg-slate-50 border-r border-slate-200 flex flex-col h-full shrink-0 hidden lg:flex shadow-xl">
         {/* Brand */}
         <div className="p-6 flex items-center gap-3">
-          <Link href="/" className="bg-lime-700/10 p-2 rounded-lg text-lime-700 cursor-pointer hover:scale-105 transition-transform">
+          <div className="bg-lime-700/10 p-2 rounded-lg text-lime-700">
             <TrendingUp size={24} />
-          </Link>
+          </div>
           <div className="flex flex-col">
             <h1 className="text-slate-900 text-base font-bold leading-tight uppercase tracking-wider">WellnessThesis</h1>
             <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Admin Control</p>
@@ -63,27 +61,27 @@ export default function AdminLayout({
         <nav className="flex-1 px-3 py-4 flex flex-col gap-2 overflow-y-auto mt-4">
           <div className="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-50">Main Menu</div>
           <SidebarItem 
-            href="/admin/dashboard" 
+            href="/" 
             icon={<LayoutDashboard size={20} />} 
             label="Dashboard" 
-            active={pathname === '/admin/dashboard'} 
+            active={pathname === '/'} 
           />
           <SidebarItem 
-            href="/admin/posts" 
+            href="/posts" 
             icon={<FileText size={20} />} 
             label="All Posts" 
-            active={pathname === '/admin/posts'} 
+            active={pathname === '/posts'} 
           />
           <SidebarItem 
-            href="/admin/products" 
+            href="/products" 
             icon={<ShoppingBag size={20} />} 
             label="Affiliate Products" 
-            active={pathname === '/admin/products'} 
+            active={pathname === '/products'} 
           />
           
           <div className="px-3 mt-8 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-50">Quick Actions</div>
           <Link 
-            href="/admin/editor"
+            href="/editor"
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-lime-700 text-white font-bold text-sm shadow-lg hover:bg-lime-800 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
           >
             <PlusCircle size={20} />
@@ -113,14 +111,8 @@ export default function AdminLayout({
         <header className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-8 shrink-0 z-10">
           <div className="flex items-center gap-4">
              <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest">
-                {pathname.split('/').slice(2).join(' / ') || 'Overview'}
+                {pathname === '/' ? 'Overview' : pathname.split('/').filter(Boolean).join(' / ')}
              </h2>
-          </div>
-          <div className="flex items-center gap-4">
-             <div className="h-8 w-px bg-slate-200"></div>
-             <Link href="/" className="text-xs font-bold text-lime-700 hover:underline flex items-center gap-1">
-                View Site <PlusCircle size={14} className="rotate-45" />
-             </Link>
           </div>
         </header>
         <div className="flex-1 overflow-y-auto custom-scrollbar bg-white">

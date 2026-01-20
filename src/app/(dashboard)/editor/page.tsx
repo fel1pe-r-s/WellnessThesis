@@ -103,7 +103,7 @@ export default function AdminEditor() {
         setMessage({ type: 'success', text: published ? 'Post published successfully!' : 'Draft saved successfully!' });
         if (!id) {
           const newPost = await res.json();
-          router.push(`/admin/editor/${newPost.id}`);
+          router.push(`/editor/${newPost.id}`);
         }
       } else {
         setMessage({ type: 'error', text: 'Error saving post' });
@@ -131,7 +131,7 @@ export default function AdminEditor() {
         <div className="flex items-center gap-6">
           <Button 
             variant="ghost" 
-            onClick={() => router.push('/admin/posts')}
+            onClick={() => router.push('/posts')}
             className="text-slate-400 hover:text-slate-900 hover:bg-slate-100 p-2 rounded-xl"
           >
             <ArrowLeft className="h-6 w-6" />

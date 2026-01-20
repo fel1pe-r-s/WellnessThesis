@@ -25,7 +25,7 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok) {
-        router.push('/admin/dashboard');
+        router.push('/');
       } else {
         setError(data.error || 'Identity verification failed');
       }

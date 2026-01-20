@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter, Playfair_Display } from 'next/font/google'
 import './globals.css'
+import { ThemeProvider } from '@/components/ThemeProvider';
 import ReactQueryProvider from '@/lib/providers/ReactQueryProvider'
 import { GoogleAnalytics } from '@next/third-parties/google'
 
@@ -36,9 +37,6 @@ export const metadata: Metadata = {
   },
 }
 
-import { ThemeProvider } from '@/components/ThemeProvider';
-import NewsletterPopup from '@/components/NewsletterPopup';
-
 export default function RootLayout({
   children,
 }: {
@@ -59,13 +57,10 @@ export default function RootLayout({
         >
           <ReactQueryProvider>
             {children}
-            <NewsletterPopup />
           </ReactQueryProvider>
         </ThemeProvider>
-        {process.env.NEXT_PUBLIC_GA_ID && (
-          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
-        )}
       </body>
     </html>
   );
 }
+
