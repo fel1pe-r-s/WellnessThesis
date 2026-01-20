@@ -1,13 +1,13 @@
 import Link from 'next/link';
 import { Clock, BookOpen } from 'lucide-react';
-import { Post } from '@/core/domain/entities';
-import pool from '@/lib/db';
+import { Post } from '@/lib/types';
+import { query } from '@/lib/db';
 
 
 export default async function LatestPostsSidebar() {
   let posts: Post[] = [];
   try {
-    const { rows } = await pool.query(
+    const { rows } = await query(
       'SELECT id, title, slug, image_url, created_at FROM posts WHERE published = true ORDER BY created_at DESC LIMIT 5'
     );
     posts = rows.map((row: any) => ({

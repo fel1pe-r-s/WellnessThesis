@@ -1,36 +1,14 @@
-'use client';
-
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { ShoppingBag, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
-import { getAllProductsUseCase } from '@/core/use-cases';
+import { Product } from '@/lib/types';
 
-export default function ProductCarousel() {
-  const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+interface ProductCarouselProps {
+  products: Product[];
+}
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        // Since we are in a 'use client' component, we'll use a fetch call to an API route instead of direct use case
-        const res = await fetch('/api/products');
-        const data = await res.json();
-        setProducts(data);
-      } catch (error) {
-        console.error('Failed to fetch products:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProducts();
-  }, []);
+export default function ProductCarousel({ products }: ProductCarouselProps) {
+  if (!products || products.length === 0) return null;
 
-  if (loading) return (
-    <div className="py-20 bg-[#10221c] flex justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#13eca4]"></div>
-    </div>
-  );
-
-  if (products.length === 0) return null;
 
   return (
     <section className="py-24 bg-slate-900 border-t border-slate-800 relative overflow-hidden">

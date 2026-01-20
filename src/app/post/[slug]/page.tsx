@@ -1,223 +1,159 @@
-import React, { Suspense } from 'react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import LatestPostsSidebar from '@/components/LatestPostsSidebar';
-import AffiliateCTA from '@/components/AffiliateCTA';
-import ProductCarousel from '@/components/ProductCarousel';
+import React from 'react';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import pool from '@/lib/db';
-
-import { Post, Product } from '@/core/domain/entities';
-import { BookOpen, Clock } from 'lucide-react';
-import { SidebarSkeleton, PostCardSkeleton } from '@/components/Skeleton';
+import { query } from '@/lib/db';
+import { Post } from '@/lib/types';
+import { Clock, Tag, User, ArrowLeft, Share2 } from 'lucide-react';
+import AffiliateCTA from '@/components/AffiliateCTA';
+import LatestPostsSidebar from '@/components/LatestPostsSidebar';
 
 export const dynamic = 'force-dynamic';
 
-async function getPostBySlug(slug: string): Promise<(Post & { product?: Product }) | null> {
-  try {
-    const { rows } = await pool.query(
-      `SELECT p.*, 
-        pr.name as "productName", 
-        pr.description as "productDescription", 
-        pr.image_url as "productImageUrl", 
-        pr.secondary_image_url as "productSecondaryImageUrl",
-        pr.affiliate_link as "productAffiliateLink" 
-      FROM posts p 
-      LEFT JOIN products pr ON p.product_id = pr.id 
-      WHERE p.slug = $1 AND p.published = true`,
-      [slug]
-    );
-
-    if (rows.length === 0) return null;
-
-    const row = rows[0];
-    const post: Post & { product?: Product } = {
-      id: row.id,
-      title: row.title,
-      slug: row.slug,
-      content: row.content,
-      imageUrl: row.image_url,
-      category: row.category,
-      published: Boolean(row.published),
-      authorId: row.author_id,
-      createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at),
-      ctaLink: row.cta_link,
-      productId: row.product_id,
-    };
-
-    if (row.product_id) {
-      post.product = {
-        id: row.product_id,
-        name: row.productName,
-        description: row.productDescription,
-        imageUrl: row.productImageUrl,
-        secondaryImageUrl: row.productSecondaryImageUrl,
-        affiliateLink: row.productAffiliateLink,
-        category: row.category, 
-        isFeatured: false, 
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-    }
-
-    return post;
-  } catch (error) {
-    console.error('Error fetching post by slug:', error);
-    return null;
-  }
-}
-
-async function RelatedPostsSection({ category, excludeId }: { category: string, excludeId: string }) {
-  const { rows } = await pool.query(
-    'SELECT * FROM posts WHERE category = $1 AND id != $2 AND published = true LIMIT 3',
-    [category, excludeId]
+async function getPost(slug: string): Promise<Post | null> {
+  const { rows } = await query(
+    `SELECT p.*, pr.name as product_name, pr.description as product_description, pr.affiliate_link as product_affiliate_link 
+     FROM posts p 
+     LEFT JOIN products pr ON p.product_id = pr.id 
+     WHERE p.slug = $1 AND p.published = true`,
+    [slug]
   );
-  const relatedPosts = rows.map((row: any) => ({
-    id: row.id,
-    title: row.title,
-    slug: row.slug,
-    content: row.content,
+  
+  if (rows.length === 0) return null;
+  
+  const row = rows[0];
+  return {
+    ...row,
     imageUrl: row.image_url,
-    category: row.category,
-    published: Boolean(row.published),
     authorId: row.author_id,
+    productId: row.product_id,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
-  })) as Post[];
-
-  if (relatedPosts.length === 0) return null;
-
-  return (
-    <section className="mt-24 pt-24 border-t border-slate-200/60">
-      <div className="flex items-center gap-4 mb-12">
-        <h3 className="text-3xl font-black font-serif tracking-tight">Recommended <span className="text-lime-700 italic">Reading</span></h3>
-        <div className="h-px flex-1 bg-slate-200/60"></div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-        {relatedPosts.map((related) => (
-          <Link key={related.id} href={`/post/${related.slug}`} className="group space-y-4">
-            <div className="relative aspect-[4/3] rounded-[2rem] overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-500">
-              <img 
-                src={related.imageUrl || 'https://images.unsplash.com/photo-1550989460-0adf9ea622e2?q=80&w=200'} 
-                alt={related.title}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            </div>
-            <div className="space-y-2">
-              <p className="text-lime-700 text-[10px] font-black uppercase tracking-[0.2em]">
-                {related.category || 'Wellness'}
-              </p>
-              <h4 className="text-xl font-black text-slate-900 group-hover:text-lime-700 transition-colors line-clamp-2 font-serif leading-tight">
-                {related.title}
-              </h4>
-            </div>
-          </Link>
-        ))}
-      </div>
-    </section>
-  );
+  } as Post;
 }
 
-export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const post = await getPostBySlug(slug);
+export default async function PostPage({ params }: { params: { slug: string } }) {
+  const { slug } = params;
+  const post = await getPost(slug);
 
   if (!post) {
-    notFound();
+    return (
+      <div className="container mx-auto px-6 py-32 text-center">
+        <h1 className="text-4xl font-serif font-black mb-8">Post Not Found</h1>
+        <Link href="/" className="text-lime-700 font-bold hover:underline">Return to Home</Link>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-lime-200 selection:text-lime-900">
-      <Header />
-      
-      <div className="container mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* Main Article */}
-          <article className="lg:col-span-8 space-y-8">
-            <header className="space-y-6">
-              <div className="flex items-center gap-3">
-                <span className="bg-lime-100 text-lime-700 px-4 py-1.5 rounded-full text-[10px] uppercase font-black tracking-[0.2em]">
-                  {post.category || 'Wellness'}
-                </span>
-                <div className="flex items-center gap-1.5 text-slate-400 text-xs font-bold uppercase tracking-wider">
-                  <Clock className="w-3.5 h-3.5" />
-                  {new Date(post.createdAt).toLocaleDateString()}
-                </div>
+    <article className="bg-slate-50 min-h-screen">
+      {/* Hero Header */}
+      <div className="bg-white border-b border-slate-200">
+        <div className="container mx-auto px-6 py-12 lg:py-20">
+          <Link href="/" className="inline-flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:text-lime-700 mb-12 transition-colors group">
+            <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+            Back to Insights
+          </Link>
+          
+          <div className="max-w-4xl">
+            <div className="flex items-center gap-3 mb-8">
+              <span className="bg-lime-700/10 text-lime-700 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-lime-700/10">
+                {post.category}
+              </span>
+              <div className="h-px w-12 bg-slate-200" />
+              <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider">
+                <Clock className="w-4 h-4" />
+                {new Date(post.createdAt).toLocaleDateString()}
               </div>
-              
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 font-serif leading-[1.1] tracking-tight">
-                {post.title}
-              </h1>
+            </div>
+            
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif font-black text-slate-900 leading-[1.05] tracking-tight mb-8">
+              {post.title}
+            </h1>
+            
+            <div className="flex items-center gap-6 pt-4">
+               <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200">
+                     <User size={18} className="text-slate-400" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Author</p>
+                    <p className="text-sm font-bold text-slate-900">WellnessThesis Team</p>
+                  </div>
+               </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-              <div className="flex items-center gap-4 py-6 border-b border-slate-200/60">
-                <div className="w-12 h-12 bg-gradient-to-br from-lime-600 to-lime-700 rounded-2xl flex items-center justify-center text-white font-black shadow-lg shadow-lime-700/20">
-                  WT
-                </div>
-                <div className="flex flex-col">
-                  <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-900">WellnessThesis Discovery</p>
-                  <p className="text-xs font-medium text-slate-500">Shared with the community</p>
-                </div>
-              </div>
-            </header>
-
+      <div className="container mx-auto px-6 py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+          <div className="lg:col-span-8 space-y-12">
+            {/* Featured Image */}
             {post.imageUrl && (
-              <div className="relative aspect-[16/9] rounded-[2.5rem] overflow-hidden group shadow-2xl shadow-slate-200/50">
-                <img 
-                  src={post.imageUrl} 
-                  alt={post.title} 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 via-transparent to-transparent opacity-60" />
+              <div className="rounded-[3rem] overflow-hidden shadow-2xl border border-slate-200 aspect-video relative">
+                <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover" />
               </div>
             )}
 
+            {/* Content */}
             <div 
-              className="prose prose-slate prose-lg max-w-none prose-serif prose-headings:font-black prose-headings:tracking-tight prose-a:text-lime-700 prose-a:no-underline hover:prose-a:underline prose-img:rounded-[2rem] prose-blockquote:border-lime-700 prose-blockquote:bg-lime-50/50 prose-blockquote:p-8 prose-blockquote:rounded-3xl prose-blockquote:not-italic prose-blockquote:font-bold prose-blockquote:text-slate-800"
+              className="prose prose-slate prose-lg max-w-none 
+                prose-headings:font-serif prose-headings:font-black prose-headings:tracking-tight
+                prose-a:text-lime-700 prose-a:no-underline hover:prose-a:underline
+                prose-strong:text-slate-900 prose-img:rounded-3xl
+                text-slate-600 font-medium leading-[1.8]"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
 
-            {post.product && (
-              <div className="pt-8">
-                <AffiliateCTA 
-                  productName={post.product.name}
-                  description={post.product.description || "Discover this discovery carefully shared for your well-being."}
-                  link={post.product.affiliateLink}
-                />
+            {/* Newsletter CTA */}
+            <div className="bg-slate-900 rounded-[3rem] p-12 text-white shadow-2xl relative overflow-hidden">
+               <div className="absolute top-0 right-0 w-64 h-64 bg-lime-500/10 rounded-full blur-3xl" />
+               <div className="relative z-10 max-w-xl">
+                  <h3 className="text-3xl font-serif font-black mb-4">Never miss an insight.</h3>
+                  <p className="text-slate-400 font-medium mb-8">Join our community of wellness seekers for weekly research updates and exclusive recommendations.</p>
+                  <Link href="#newsletter" className="inline-block px-10 py-5 bg-lime-700 text-white font-black rounded-2xl shadow-xl shadow-lime-900/20 hover:bg-lime-600 transition-all uppercase tracking-widest text-xs">
+                    Join the Research Community
+                  </Link>
+               </div>
+            </div>
+          </div>
+
+          <aside className="lg:col-span-4 space-y-12">
+            {/* Related Product */}
+            {post.productId && post.product_name && (
+              <div className="sticky top-24 space-y-12">
+                <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-sm">
+                   <h4 className="text-[10px] font-black uppercase tracking-widest text-lime-700 mb-6 flex items-center gap-2">
+                     <Tag className="w-3 h-3" /> Recommended Solution
+                   </h4>
+                   <AffiliateCTA 
+                    productName={post.product_name} 
+                    description={post.product_description || ''} 
+                    link={post.product_affiliate_link || ''} 
+                   />
+                </div>
+                <LatestPostsSidebar />
               </div>
             )}
-          </article>
 
-          {/* Sidebar */}
-          <aside className="lg:col-span-4 space-y-8">
-            <div className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-sm border border-slate-100 transition-all hover:shadow-md">
-              <h4 className="font-bold text-slate-900 mb-4 uppercase text-[10px] tracking-[0.2em] flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-lime-700" />
-                About this blog
-              </h4>
-              <p className="text-slate-600 text-sm leading-relaxed font-medium mb-6">
-                I share updates on well-being, beauty, health, and fitness. These are practical tips, recipes, and discoveries to help you on your healthy living journey.
-              </p>
-              <Link href="/" className="inline-flex w-full items-center justify-center bg-slate-900 text-white px-6 py-4 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-lime-700 transition-all active:scale-95 shadow-xl shadow-slate-200/50">
-                Back to insights
-              </Link>
-            </div>
-            
-            <Suspense fallback={<SidebarSkeleton />}>
-              <LatestPostsSidebar />
-            </Suspense>
+            {!post.productId && (
+              <div className="sticky top-24 space-y-12">
+                <LatestPostsSidebar />
+                <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-sm text-center">
+                   <Share2 className="w-8 h-8 text-slate-200 mx-auto mb-4" />
+                   <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-6">Share this discovery</p>
+                   <div className="flex justify-center gap-4">
+                      {['TW', 'FB', 'LI'].map(social => (
+                        <div key={social} className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-[10px] font-black text-slate-400 hover:text-lime-700 hover:border-lime-700/30 cursor-pointer transition-all">
+                          {social}
+                        </div>
+                      ))}
+                   </div>
+                </div>
+              </div>
+            )}
           </aside>
         </div>
-
-        <Suspense fallback={<div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8"><PostCardSkeleton /><PostCardSkeleton /><PostCardSkeleton /></div>}>
-          <RelatedPostsSection category={post.category || ''} excludeId={post.id} />
-        </Suspense>
       </div>
-
-      <ProductCarousel />
-      <Footer />
-    </div>
+    </article>
   );
 }

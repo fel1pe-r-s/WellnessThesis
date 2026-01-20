@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { SubscriberSchema } from '@/lib/schemas';
-import pool from '@/lib/db';
+import { query } from '@/lib/db';
 
 
 export async function POST(req: Request) {
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     // Using ON CONFLICT DO NOTHING to match "subscribe successfully" even if already there, or return error.
     // Original code was just INSERT. If unique index on email, it throws.
     
-    await pool.query(
+    await query(
       'INSERT INTO subscribers (id, email, created_at) VALUES ($1, $2, $3)',
       [id, email, now]
     );

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter, Playfair_Display } from 'next/font/google'
 import './globals.css'
-import ReactQueryProvider from '@/lib/providers/ReactQueryProvider'
+
 import { GoogleAnalytics } from '@next/third-parties/google'
 
 const inter = Inter({ 
@@ -36,32 +36,34 @@ export const metadata: Metadata = {
   },
 }
 
-import { ThemeProvider } from '@/components/ThemeProvider';
-import NewsletterPopup from '@/components/NewsletterPopup';
 
-export default function RootLayout({
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
+import { query } from '@/lib/db'
+
+async function getCategories() {
+  const { rows } = await query('SELECT DISTINCT category FROM posts WHERE published = true');
+  return rows.map((r: any) => r.category);
+}
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const categories = await getCategories();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
       </head>
       <body className={`${inter.variable} ${playfair.variable} font-sans`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
-          forcedTheme="light"
-          disableTransitionOnChange
-        >
-          <ReactQueryProvider>
-            {children}
-            <NewsletterPopup />
-          </ReactQueryProvider>
-        </ThemeProvider>
+        <Header categories={categories} />
+        {children}
+        <Footer />
+
+
         {process.env.NEXT_PUBLIC_GA_ID && (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
         )}

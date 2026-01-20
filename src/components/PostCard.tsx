@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Post } from '@/core/domain/entities';
+import { Post } from '@/lib/types';
 import { ArrowRight, Clock } from 'lucide-react';
 
 interface PostCardProps {

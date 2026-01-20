@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Star } from 'lucide-react';
-import pool from '@/lib/db';
+import { query } from '@/lib/db';
 
 
 interface FeaturedProduct {
@@ -16,7 +16,7 @@ export default async function FeaturedProductSpotlight() {
   let product: FeaturedProduct | null = null;
 
   try {
-    const { rows } = await pool.query(
+    const { rows } = await query(
       'SELECT id, name, description, image_url, secondary_image_url, affiliate_link FROM products WHERE is_featured = true LIMIT 1'
     );
     if (rows.length > 0) {

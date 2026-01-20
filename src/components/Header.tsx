@@ -5,20 +5,14 @@ import { useState } from 'react';
 import { Menu, X, Search, ChevronDown, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import { SearchDialog } from './SearchDialog';
-import { useQuery } from '@tanstack/react-query';
+interface HeaderProps {
+  categories: string[];
+}
 
-export default function Header() {
+export default function Header({ categories }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  const { data: categories } = useQuery<string[]>({
-    queryKey: ['categories'],
-    queryFn: async () => {
-      const res = await fetch('/api/categories');
-      if (!res.ok) throw new Error('Failed to fetch categories');
-      return res.json();
-    }
-  });
 
   return (
     <header className="bg-white/70 backdrop-blur-xl shadow-[0_2px_20px_-5px_rgba(0,0,0,0.05)] sticky top-0 z-50 border-b border-slate-200/50 transition-all duration-500">
