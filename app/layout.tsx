@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
+import { Suspense } from 'react';
 
 import { GoogleAnalytics } from '@next/third-parties/google'
 
@@ -41,19 +42,29 @@ import Footer from '@/components/Footer'
 
 import { getCategories } from '@/lib/wordpress';
 
-export default async function RootLayout({
+async function HeaderWithCategories() {
+  const categories = await getCategories();
+  return <Header categories={categories} />;
+}
+
+function HeaderFallback() {
+  return <Header categories={[]} />;
+}
+
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const categories = await getCategories();
   return (
     <html lang="en" suppressHydrationWarning className="light" style={{ colorScheme: 'light' }}>
       <head>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
       </head>
       <body className={`${inter.variable} ${playfair.variable} font-sans bg-white text-slate-900`}>
-        <Header categories={categories} />
+        <Suspense fallback={<HeaderFallback />}>
+          <HeaderWithCategories />
+        </Suspense>
         {children}
         <Footer />
 
