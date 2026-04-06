@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, X, Loader2, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { Post } from '@/lib/types';
 
 export function SearchDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [queryText, setQueryText] = useState('');
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 

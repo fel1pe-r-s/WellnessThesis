@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { Clock, BookOpen } from 'lucide-react';
 import { getPosts } from '@/lib/wordpress';
+import { Post } from '@/lib/types';
 
 
 export default async function LatestPostsSidebar() {
-  let posts = [];
+  let posts: Post[] = [];
   try {
     posts = await getPosts(5, 0); // limiting to 5 for the sidebar
   } catch (error) {
