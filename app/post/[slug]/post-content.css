@@ -1,0 +1,175 @@
+.wp-post-content {
+  /* Optimal line width for readability */
+  max-width: 72ch;
+  margin: 0 auto;
+  color: #334155;
+  line-height: 1.85;
+  font-size: 1.15rem;
+  word-break: break-word;
+  hyphens: auto;
+  text-rendering: optimizeLegibility;
+}
+
+/* Drop Cap for the first letter of the first paragraph */
+.wp-post-content > p:first-of-type::first-letter {
+  float: left;
+  font-family: var(--font-playfair), serif;
+  font-size: 4.5rem;
+  line-height: 1;
+  padding-right: 0.75rem;
+  padding-top: 0.25rem;
+  color: #0f172a;
+  font-weight: 900;
+}
+
+.wp-post-content p {
+  margin-bottom: 2.5rem;
+}
+
+/* Leading Paragraph (Lead) */
+.wp-post-content > p:first-of-type {
+  font-size: 1.3rem;
+  line-height: 1.7;
+  color: #1e293b;
+  font-weight: 450;
+  margin-bottom: 3rem;
+}
+
+.wp-post-content h2,
+.wp-post-content h3,
+.wp-post-content h4 {
+  font-family: var(--font-playfair), serif;
+  color: #0f172a;
+  font-weight: 900;
+  margin-top: 4.5rem;
+  margin-bottom: 2rem;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+}
+
+.wp-post-content h2 {
+  font-size: 2.75rem;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  padding-bottom: 1rem;
+}
+
+.wp-post-content h3 {
+  font-size: 2.1rem;
+}
+
+/* Professional Media Framing */
+.wp-post-content img,
+.wp-post-content figure,
+.wp-post-content .wp-block-image {
+  border-radius: 2rem;
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.15);
+  margin: 4.5rem 0;
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  overflow: hidden;
+  width: 100%;
+  height: auto;
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.wp-post-content img:hover {
+  transform: translateY(-4px) scale(1.005);
+  box-shadow: 0 35px 60px -15px rgb(0 0 0 / 0.2);
+}
+
+.wp-post-content figcaption {
+  text-align: center;
+  font-family: var(--font-playfair), serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  color: #64748b;
+  margin-top: -3rem;
+  margin-bottom: 4.5rem;
+  display: block;
+  padding: 0 2rem;
+}
+
+/* Blockquotes - High End Style */
+.wp-post-content blockquote {
+  position: relative;
+  border-left: 6px solid #4d7c0f;
+  background: linear-gradient(to right, #f7fee7, #ffffff);
+  padding: 2.5rem 3rem;
+  border-radius: 0 2rem 2rem 0;
+  margin: 4rem 0;
+}
+
+.wp-post-content blockquote::before {
+  content: '“';
+  position: absolute;
+  top: -1rem;
+  left: 1rem;
+  font-family: var(--font-playfair), serif;
+  font-size: 8rem;
+  color: #ecfccb;
+  z-index: 0;
+  line-height: 1;
+}
+
+.wp-post-content blockquote p {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 0;
+  font-size: 1.45rem;
+  color: #1a2e05;
+  font-family: var(--font-playfair), serif;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+/* Horizontal Rule */
+.wp-post-content hr {
+  border: 0;
+  height: 1px;
+  background-image: linear-gradient(to right, transparent, rgba(203, 213, 225, 1), transparent);
+  margin: 5rem 0;
+}
+
+/* List Styles */
+.wp-post-content ul,
+.wp-post-content ol {
+  margin-bottom: 2.5rem;
+  padding-left: 2rem;
+}
+
+.wp-post-content li {
+  margin-bottom: 1.25rem;
+  padding-left: 0.5rem;
+}
+
+.wp-post-content li::marker {
+  color: #4d7c0f;
+  font-weight: 900;
+}
+
+/* Video Embeds */
+.wp-post-content iframe {
+  width: 100% !important;
+  aspect-ratio: 16 / 9;
+  border-radius: 2rem;
+  margin: 4.5rem 0;
+  border: none;
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.15);
+}
+
+/* Links */
+.wp-post-content a {
+  color: #4d7c0f;
+  text-decoration: none;
+  background-image: linear-gradient(120deg, #ecfccb 0%, #ecfccb 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 0.2em;
+  background-position: 0 90%;
+  transition: all 0.25s ease-in-out;
+  font-weight: 700;
+}
+
+.wp-post-content a:hover {
+  background-size: 100% 100%;
+  color: #1a2e05;
+  background-position: 0 100%;
+}
