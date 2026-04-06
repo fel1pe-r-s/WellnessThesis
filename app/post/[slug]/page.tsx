@@ -7,11 +7,12 @@ import { notFound } from 'next/navigation';
 
 import './post-content.css';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60; // Revalidate every minute
 
 export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const post = await getPostBySlug(slug);
+  const decodedSlug = decodeURIComponent(slug);
+  const post = await getPostBySlug(decodedSlug);
 
   if (!post) {
     notFound();

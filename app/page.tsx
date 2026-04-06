@@ -6,12 +6,14 @@ import PostFeed from '@/components/PostFeed';
 
 import { getPosts, getProducts, getFeaturedPost } from '@/lib/wordpress';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60; // Revalidate every minute
 
 export default async function Home() {
-  const posts = await getPosts(10, 0);
-  const products = await getProducts(); // This gets home page "destaque" products by default
-  const stickyPost = await getFeaturedPost();
+  const [posts, products, stickyPost] = await Promise.all([
+    getPosts(10, 0),
+    getProducts(),
+    getFeaturedPost()
+  ]);
 
   const featuredPost = stickyPost || posts[0];
   const regularPosts = posts.filter(p => p.id !== featuredPost?.id);

@@ -1,4 +1,4 @@
-import { Post, Product, WpCategory, Category } from './types';
+import { Post, Product, Category } from './types';
 
 const API_URL = process.env.WORDPRESS_API_URL;
 
@@ -73,23 +73,9 @@ function wpToPost(wpPost: any): Post {
     };
 }
 
-// Convert WP Post to our Product Interface
-function wpToProduct(wpPost: any): Product {
-    const post = wpToPost(wpPost);
-    return {
-        id: post.id,
-        name: post.title,
-        description: post.excerpt || '',
-        imageUrl: post.imageUrl || 'https://via.placeholder.com/800x600?text=Product',
-        category: post.category || 'Geral',
-        affiliateLink: extractFirstLink(post.content),
-        isFeatured: post.isFeatured,
-    };
-}
-
 export async function getPosts(limit = 10, offset = 0): Promise<Post[]> {
     try {
-        const res = await fetch(`${API_URL}/posts?_embed&per_page=${limit}&offset=${offset}`, { cache: 'no-store' });
+        const res = await fetch(`${API_URL}/posts?_embed&per_page=${limit}&offset=${offset}`, { next: { revalidate: 60 } });
         if (!res.ok) throw new Error('Failed to fetch posts');
         const data = await res.json();
         return data.map(wpToPost);
@@ -101,11 +87,11 @@ export async function getPosts(limit = 10, offset = 0): Promise<Post[]> {
 
 export async function getProducts(categorySlug?: string): Promise<Product[]> {
     try {
-        let url = `${API_URL}/produtos?_embed&per_page=30`;
-        const res = await fetch(url, { cache: 'no-store' });
+        const url = `${API_URL}/produtos?_embed&per_page=30`;
+        const res = await fetch(url, { next: { revalidate: 60 } });
         if (!res.ok) throw new Error('Failed to fetch products from /produtos');
 
-        let data = await res.json();
+        const data = await res.json();
 
         const products = data
             .map((wpPost: any) => {
@@ -223,10 +209,13 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
         const res = await fetch(`${API_URL}/posts?_embed&slug=${slug}`, { next: { revalidate: 60 } });
         if (!res.ok) throw new Error('Failed to fetch post');
         const data = await res.json();
-        if (data.length === 0) return null;
+        if (data.length === 0) {
+            console.log(`No post found for slug: ${slug}`);
+            return null;
+        }
         return wpToPost(data[0]);
     } catch (error) {
-        console.error(error);
+        console.error(`Error in getPostBySlug for slug ${slug}:`, error);
         return null;
     }
 }
